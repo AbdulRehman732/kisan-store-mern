@@ -1,0 +1,9 @@
+name,category,price,unit,stock,brand,description,featured,tags
+Urea Fertilizer,Fertilizer,3500,per bag,150,Alpha Agro,High nitrogen content (46% N) for maximum plant growth and crop yield,true,"urea,nitrogen,wheat"
+DAP Fertilizer,Fertilizer,9800,per bag,80,Engro,Diammonium Phosphate for strong root development and early crop establishment,true,"dap,phosphate,phosphorus"
+NPK 20-20-20,Fertilizer,6200,per bag,120,FFC,Balanced nutrients for all-purpose crop application suitable for all soil types,false,"npk,balanced,all-purpose"
+Organic Compost,Fertilizer,1200,per 40kg,200,Bio-Farm,Pure organic matter to improve soil health structure and water retention,false,"organic,compost,natural"
+Potash MOP,Fertilizer,4100,per bag,60,Sona Urea,Potassium Chloride for disease resistance and improved fruit quality,false,"potash,mop,potassium"
+Wheat Seeds (Certified),Seeds,1800,per 40kg,300,Punjab Seed,NARC certified high-yield wheat variety suitable for irrigated plains,true,"wheat,seeds,certified"
+Cotton Seeds BT,Seeds,2200,per bag,100,Bayer,Bt cotton variety with built-in bollworm resistance for higher yield,false,"cotton,bt,seeds"
+Sunflower Seeds,Seeds,2800,per kg,50,Pioneer,Hybrid sunflower seeds with high oil content and drought tolerance,false,"sunflower,hybrid,seeds"

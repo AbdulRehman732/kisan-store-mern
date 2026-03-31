@@ -1,0 +1,30 @@
+# Root node_modules
+node_modules/
+
+# Frontend dependencies
+Frontend/node_modules/
+
+# Backend dependencies
+Backend/node_modules/
+
+# Environment files
+.env
+Backend/.env
+Frontend/.env
+
+# Visual Audit evidence
+screenshots/
+screenshots_admin/
+Backend/screenshots_admin/
+
+# VS Code / IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+Frontend/dist/
+Backend/dist/
