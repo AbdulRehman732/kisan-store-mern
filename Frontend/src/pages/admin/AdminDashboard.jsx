@@ -5,175 +5,168 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 import api from '../../api';
-
-// ===== ANIMATIONS =====
-const spin = keyframes`to { transform: rotate(360deg); }`;
-const fadeIn = keyframes`from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); }`;
+import { useNavigate } from 'react-router-dom';
 
 // ===== STYLED COMPONENTS =====
-const PageTitle = styled.h2`
-  font-size: 3rem;
-  color: var(--primary);
-  margin-bottom: 54px;
-  animation: ${fadeIn} 0.5s ease-out;
+const PageContainer = styled.div`
+  padding: var(--spacing-xl);
+  animation: entrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+`;
 
+const Header = styled.div`
+  margin-bottom: var(--spacing-xxl);
+`;
+
+const Title = styled.h2`
+  font-size: 3.5rem;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  
   small {
     display: block;
-    font-family: 'Inter', sans-serif;
     font-size: 1.1rem;
-    color: var(--text-muted);
-    font-weight: 500;
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    opacity: 0.7;
     margin-top: 12px;
   }
 `;
 
 const StatsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 24px;
-  margin-bottom: 48px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-xxl);
 `;
 
 const StatCard = styled.div`
-  background: var(--white);
+  background: var(--bg-surface);
   border-radius: var(--radius-card);
-  padding: 32px;
-  box-shadow: var(--shadow-premium);
-  border: 1px solid var(--border-soft);
-  text-align: left;
-  transition: var(--transition);
-  &:hover { transform: translateY(-5px); }
+  padding: var(--spacing-xl);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-subtle);
+  transition: var(--transition-smooth);
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%; width: 200%; height: 200%;
+    background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+    opacity: 0;
+    transition: var(--transition-smooth);
+  }
+
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-premium);
+    border-color: var(--accent);
+    &::after { opacity: 0.1; }
+  }
 `;
 
-const StatIcon = styled.div`
-  font-size: 2rem;
-  margin-bottom: 20px;
-  width: 50px;
-  height: 50px;
-  background: var(--bg-cream);
+const IconBox = styled.div`
+  width: 54px;
+  height: 54px;
+  background: var(--bg-surface-alt);
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
+  font-size: 1.8rem;
+  margin-bottom: 24px;
+  border: 1px solid var(--border);
 `;
 
-const StatValue = styled.div`
-  font-size: 2.2rem;
-  font-weight: 800;
-  color: var(--primary);
+const Val = styled.div`
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
   margin-bottom: 4px;
 `;
 
-const StatLabel = styled.div`
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  font-weight: 800;
+const Lab = styled.div`
+  font-size: 0.75rem;
+  font-weight: 900;
+  color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
 `;
 
-const ChartsGrid = styled.div`
+const SectionGrid = styled.div`
   display: grid;
-  grid-template-columns: 1.5fr 1fr;
-  gap: 32px;
-  margin-bottom: 48px;
-  @media (max-width: 1100px) { grid-template-columns: 1fr; }
+  grid-template-columns: 1.6fr 1fr;
+  gap: var(--spacing-xl);
+  margin-bottom: var(--spacing-xxl);
+  @media (max-width: 1200px) { grid-template-columns: 1fr; }
 `;
 
-const Card = styled.div`
-  background: var(--white);
+const DataCard = styled.div`
+  background: var(--bg-surface);
   border-radius: var(--radius-card);
-  padding: 40px;
-  box-shadow: var(--shadow-premium);
-  border: 1px solid var(--border-soft);
-  margin-bottom: 32px;
+  padding: var(--spacing-xl);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-subtle);
+  overflow: hidden;
 `;
 
 const CardHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
+  margin-bottom: 32px;
+  h3 { font-size: 1.8rem; color: var(--text-primary); }
 `;
 
-const CardTitle = styled.h3`
-  font-size: 1.8rem;
-  color: var(--primary);
-`;
-
-const Table = styled.table`
+const EliteTable = styled.table`
   width: 100%;
   border-collapse: collapse;
+  
   thead th {
     padding: 20px;
     text-align: left;
-    font-size: 0.8rem;
-    font-weight: 800;
-    color: var(--text-charcoal);
+    font-size: 0.72rem;
+    font-weight: 900;
+    color: var(--text-secondary);
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    border-bottom: 2px solid var(--bg-cream);
+    letter-spacing: 0.15em;
+    border-bottom: 1px solid var(--border);
   }
+
   tbody td {
-    padding: 20px;
-    border-bottom: 1px solid var(--bg-cream);
-    color: var(--text-muted);
-    font-weight: 500;
+    padding: 24px 20px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 0.95rem;
   }
-  tbody tr:hover { background: var(--bg-cream); }
+
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--bg-surface-alt); }
 `;
 
-const StatusBadge = styled.span`
+const StatusPill = styled.span`
   padding: 6px 14px;
   border-radius: var(--radius-pill);
-  font-size: 0.75rem;
-  font-weight: 800;
+  font-size: 0.68rem;
+  font-weight: 900;
   text-transform: uppercase;
-  background: ${p => p.$status === 'Completed' ? 'var(--primary)' : p.$status === 'Cancelled' ? '#fdf2f0' : 'var(--accent)'};
-  color: ${p => p.$status === 'Completed' ? 'var(--white)' : p.$status === 'Cancelled' ? '#d46a4f' : 'var(--primary)'};
-`;
-
-const LogTypeBadge = styled.span`
-  font-size: 0.7rem;
-  font-weight: 800;
-  padding: 4px 10px;
-  border-radius: var(--radius-sm);
-  background: var(--bg-cream);
-  color: var(--primary);
-  text-transform: uppercase;
-`;
-
-const SpinnerWrap = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 400px;
-`;
-
-const Spinner = styled.div`
-  width: 50px;
-  height: 50px;
-  border: 4px solid var(--bg-cream);
-  border-top-color: var(--primary);
-  border-radius: 50%;
-  animation: ${spin} 0.8s linear infinite;
-`;
-
-const ContentSection = styled.div`
-  animation: ${fadeIn} 0.6s ease-out;
-`;
-
-const TableScroll = styled.div`
-  overflow-x: auto;
+  letter-spacing: 0.05em;
+  background: ${p => p.$s === 'Completed' ? 'rgba(76, 175, 80, 0.1)' : p.$s === 'Cancelled' ? 'rgba(212, 106, 79, 0.1)' : 'rgba(245, 182, 17, 0.1)'};
+  color: ${p => p.$s === 'Completed' ? '#4CAF50' : p.$s === 'Cancelled' ? '#d46a4f' : '#F5B611'};
+  border: 1px solid currentColor;
 `;
 
 // ===== COMPONENT =====
-const COLORS = ['var(--primary)', 'var(--accent)', '#d46a4f', '#1565c0'];
-
 const AdminDashboard = () => {
   const [data, setData] = useState(null);
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     Promise.all([
@@ -188,139 +181,136 @@ const AdminDashboard = () => {
     .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <SpinnerWrap><Spinner /></SpinnerWrap>;
+  if (loading) return <div style={{display:'flex',justifyContent:'center',padding:'150px'}}><div style={{width:'60px',height:'60px',border:'5px solid var(--border)',borderTopColor:'var(--primary)',borderRadius:'50%',animation:'spin 0.8s linear infinite'}} /></div>;
   if (!data) return null;
 
   const { stats, monthlyOrders, statusBreakdown, recentOrders } = data;
-
-  const statCards = [
-    { icon: '👨‍🌾', label: 'Farmers', val: stats?.totalFarmers || 0 },
-    { icon: '🌱', label: 'Products', val: stats?.totalProducts || 0 },
-    { icon: '📦', label: 'Orders', val: stats?.totalOrders || 0 },
-    { icon: '⏳', label: 'Pending', val: stats?.pendingOrders || 0 },
-    { icon: '✅', label: 'Completed', val: stats?.completedOrders || 0 },
-    { icon: '💰', label: 'Revenue', val: `Rs.${(stats?.totalRevenue || 0).toLocaleString()}` },
-  ];
+  const chartColors = ['var(--primary)', 'var(--accent)', '#FF5252', '#2196F3'];
 
   return (
-    <ContentSection>
-      <PageTitle>
-        Performance Insights
-        <small>Real-time authoritative overview of KisanStore ecosystem</small>
-      </PageTitle>
+    <PageContainer>
+      <Header>
+        <Title>
+          Institutional Analytics
+          <small>Nexus Command Intelligence — Baseline Audit</small>
+        </Title>
+      </Header>
 
       <StatsGrid>
-        {statCards.map((s, i) => (
-          <StatCard key={i}>
-            <StatIcon>{s.icon}</StatIcon>
-            <StatValue>{s.val}</StatValue>
-            <StatLabel>{s.label}</StatLabel>
+        {[
+          { i: '👥', l: 'Stakeholders', v: stats?.totalFarmers || 0 },
+          { i: '📦', l: 'Authorized Orders', v: stats?.totalOrders || 0 },
+          { i: '💰', l: 'Global Revenue', v: `Rs.${(stats?.totalRevenue || 0).toLocaleString()}` },
+          { i: '📉', l: 'System Liability', v: `Rs.${(stats?.totalDebt || 0).toLocaleString()}` },
+        ].map((s, idx) => (
+          <StatCard key={idx}>
+            <IconBox>{s.i}</IconBox>
+            <Val>{s.v}</Val>
+            <Lab>{s.l}</Lab>
           </StatCard>
         ))}
       </StatsGrid>
 
-      <ChartsGrid>
-        <Card>
-          <CardTitle style={{ marginBottom:'32px' }}>Monthly Order Trends</CardTitle>
-          <ResponsiveContainer width="100%" height={300}>
+      <SectionGrid>
+        <DataCard>
+          <CardHeader><h3>Operational Velocity</h3></CardHeader>
+          <ResponsiveContainer width="100%" height={320}>
             <BarChart data={monthlyOrders || []}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--bg-cream)" vertical={false} />
-              <XAxis dataKey="month" tick={{ fontSize: 12, fontWeight: 700 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 12, fontWeight: 700 }} axisLine={false} tickLine={false} />
-              <Tooltip cursor={{fill: 'var(--bg-cream)'}} />
-              <Bar dataKey="orders" fill="var(--primary)" radius={[10, 10, 0, 0]} barSize={45} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+              <XAxis dataKey="month" tick={{ fill: 'var(--text-secondary)', fontSize: 12, fontWeight: 700 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: 'var(--text-secondary)', fontSize: 12, fontWeight: 700 }} axisLine={false} tickLine={false} />
+              <Tooltip 
+                contentStyle={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '12px', boxShadow: 'var(--shadow-premium)' }}
+                itemStyle={{ color: 'var(--primary)', fontWeight: 800 }}
+              />
+              <Bar dataKey="orders" fill="var(--primary)" radius={[10, 10, 0, 0]} barSize={50} />
             </BarChart>
           </ResponsiveContainer>
-        </Card>
+        </DataCard>
 
-        <Card>
-          <CardTitle style={{ marginBottom:'32px' }}>Status Distribution</CardTitle>
-          <ResponsiveContainer width="100%" height={300}>
+        <DataCard>
+          <CardHeader><h3>Order Distribution</h3></CardHeader>
+          <ResponsiveContainer width="100%" height={320}>
             <PieChart>
               <Pie
                 data={statusBreakdown || []}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                innerRadius={70}
-                outerRadius={100}
+                innerRadius={75}
+                outerRadius={105}
                 paddingAngle={8}
+                dataKey="value"
               >
                 {(statusBreakdown || []).map((_, i) => (
-                  <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                  <Cell key={i} fill={chartColors[i % chartColors.length]} stroke="none" />
                 ))}
               </Pie>
               <Tooltip />
               <Legend verticalAlign="bottom" height={36}/>
             </PieChart>
           </ResponsiveContainer>
-        </Card>
-      </ChartsGrid>
+        </DataCard>
+      </SectionGrid>
 
-      <Card>
+      <DataCard style={{marginBottom: 'var(--spacing-xl)'}}>
         <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
-          <button style={{ background:'var(--primary)', color:'var(--white)', padding:'10px 20px', borderRadius:'var(--radius-pill)', fontWeight:800, fontSize:'0.75rem' }}>VIEW ALL ORDERS</button>
+          <h3>Recent Procurement Logs</h3>
+          <button onClick={() => navigate('/admin/orders')} style={{background:'var(--bg-surface-alt)', border:'1px solid var(--border)', color:'var(--text-primary)', padding:'10px 24px', borderRadius:'var(--radius-pill)', fontWeight:900, fontSize:'0.75rem', cursor:'pointer'}}>AUDIT ALL</button>
         </CardHeader>
-        <TableScroll>
-          <Table>
+        <div style={{overflowX:'auto'}}>
+          <EliteTable>
             <thead>
               <tr>
-                <th>Farmer Entity</th>
-                <th>Items</th>
-                <th>Transaction Value</th>
-                <th>Schedule</th>
+                <th>Stakeholder Entity</th>
+                <th>Magnitude</th>
+                <th>Financial Valuation</th>
+                <th>Auth Date</th>
                 <th>Status</th>
               </tr>
             </thead>
             <tbody>
-              {(recentOrders || []).map(o => (
+              {recentOrders?.map(o => (
                 <tr key={o._id}>
-                  <td style={{ fontWeight: 800, color: 'var(--primary)' }}>{o.farmer?.first_name} {o.farmer?.last_name}</td>
-                  <td>{o.items?.length} sku(s)</td>
-                  <td style={{ fontWeight: 800, color: 'var(--text-charcoal)' }}>Rs. {o.totalAmount?.toLocaleString()}</td>
+                  <td style={{fontWeight:900, color:'var(--primary)'}}>{o.farmer?.first_name} {o.farmer?.last_name}</td>
+                  <td>{o.items?.length} units</td>
+                  <td style={{fontWeight:900}}>Rs. {o.totalAmount?.toLocaleString()}</td>
                   <td>{new Date(o.pickupDate).toLocaleDateString()}</td>
-                  <td><StatusBadge $status={o.status}>{o.status}</StatusBadge></td>
+                  <td><StatusPill $s={o.status}>{o.status}</StatusPill></td>
                 </tr>
               ))}
             </tbody>
-          </Table>
-        </TableScroll>
-      </Card>
+          </EliteTable>
+        </div>
+      </DataCard>
 
-      <Card>
+      <DataCard>
         <CardHeader>
-          <CardTitle>System Audit</CardTitle>
-          <span style={{fontSize:'0.8rem', color:'var(--text-muted)', fontWeight:800}}>LATEST 10 ACTIONS</span>
+          <h3>Nexus System Audit</h3>
+          <Lab>Latest Security Events</Lab>
         </CardHeader>
-        <TableScroll>
-          <Table>
+        <div style={{overflowX:'auto'}}>
+          <EliteTable>
             <thead>
               <tr>
-                <th>Action</th>
-                <th>Admin</th>
-                <th>Resource</th>
+                <th>Protocol Action</th>
+                <th>Authorized Agent</th>
+                <th>Resource Target</th>
                 <th>Timestamp</th>
               </tr>
             </thead>
             <tbody>
-              {logs.length === 0 ? (
-                <tr><td colSpan="4" style={{textAlign:'center', padding:'40px'}}>No logs recorded</td></tr>
-              ) : logs.map(log => (
+              {logs.map(log => (
                 <tr key={log._id}>
-                  <td><LogTypeBadge>{log.action}</LogTypeBadge></td>
-                  <td style={{ fontWeight: 800 }}>{log.admin?.first_name || 'System'}</td>
-                  <td>{log.resourceType}: {log.resourceId}</td>
-                  <td>{new Date(log.createdAt).toLocaleString()}</td>
+                  <td><span style={{background:'var(--bg-surface-alt)', padding:'4px 10px', borderRadius:'6px', fontSize:'0.7rem', fontWeight:900, color:'var(--primary)'}}>{log.action}</span></td>
+                  <td style={{fontWeight:800}}>{log.admin?.first_name || 'System Auto'}</td>
+                  <td style={{fontSize:'0.85rem', color:'var(--text-secondary)'}}>{log.resourceType} ID: {log.resourceId ? log.resourceId.slice(-8) : 'N/A'}</td>
+                  <td style={{fontSize:'0.85rem', opacity:0.7}}>{new Date(log.createdAt).toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>
-          </Table>
-        </TableScroll>
-      </Card>
-    </ContentSection>
+          </EliteTable>
+        </div>
+      </DataCard>
+    </PageContainer>
   );
 };
 
-export default AdminDashboard;
+export default AdminDashboard;

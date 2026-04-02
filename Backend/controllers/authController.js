@@ -119,6 +119,7 @@ exports.login = async (req, res) => {
     setCookies(res, accessToken, refreshToken);
 
     res.json({
+      token: accessToken,
       user: {
         _id: user._id,
         first_name: user.first_name,
@@ -252,6 +253,8 @@ exports.updateCart = async (req, res) => {
   }
 };
 
+const MailService = require('../services/MailService');
+
 exports.forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -264,12 +267,19 @@ exports.forgotPassword = async (req, res) => {
 
     await user.save();
 
-    // Log the link since we don't have SMTP
     const resetUrl = `http://localhost:3000/#/reset-password/${resetToken}`;
-    console.log(`[AUTH] Password Reset Link: ${resetUrl}`);
-
-    res.json({ message: 'Reset link sent to console' });
+    
+    // Dispatch real (mocked) email
+    const mailResult = await MailService.sendResetEmail(user, resetUrl);
+    
+    if (mailResult && mailResult.success) {
+       console.log(`[AUTH] Recovery Email Dispatch Log: ${mailResult.previewUrl}`);
+       res.json({ message: 'Institutional recovery link dispatched.', previewUrl: mailResult.previewUrl });
+    } else {
+       res.status(500).json({ message: 'Email dispatch failed. Recovery simulation aborted.' });
+    }
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -291,6 +301,25 @@ exports.resetPassword = async (req, res) => {
 
     res.json({ message: 'Password reset successful' });
   } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+exports.sendTemplateEmail = async (req, res) => {
+  try {
+    const { email, subject, text } = req.body;
+    if (!email || !subject || !text) {
+      return res.status(400).json({ message: 'Missing institutional dispatch payload (email, subject, or text)' });
+    }
+
+    const result = await MailService.sendGenericTemplate(email, subject, text);
+    if (result && result.success) {
+      res.json({ message: 'Institutional message dispatched.', previewUrl: result.previewUrl });
+    } else {
+      res.status(500).json({ message: 'Dispatch failed. SMTP handshake error.' });
+    }
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 };

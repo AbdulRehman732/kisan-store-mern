@@ -1,327 +1,353 @@
 import React, { useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
 import api from '../../api';
-
-// ===== ANIMATIONS =====
-const spin = keyframes`to { transform: rotate(360deg); }`;
-const fadeIn = keyframes`from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); }`;
+import { generateOrderReport, generateSingleInvoice } from '../../utils/PDFService';
+import CommHubModal from '../../components/CommHubModal';
 
 // ===== STYLED COMPONENTS =====
 const PageContainer = styled.div`
-  padding: 40px;
-  animation: ${fadeIn} 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: var(--spacing-xl);
+  animation: entrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  background: var(--bg-app);
+  min-height: 100vh;
 `;
 
 const Topbar = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 54px;
+  margin-bottom: var(--spacing-xxl);
   flex-wrap: wrap;
-  gap: 24px;
+  gap: var(--spacing-lg);
 `;
 
 const PageTitle = styled.h2`
-  font-size: 3rem;
-  color: var(--primary);
+  font-size: 3.5rem;
+  color: var(--text-primary);
   display: flex;
   align-items: center;
-  gap: 16px;
-  small { font-size: 1rem; color: var(--text-muted); font-weight: 500; font-family: 'Inter', sans-serif; }
+  gap: var(--spacing-md);
+  small { font-size: 1rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.7; }
 `;
 
 const CountBadge = styled.span`
-  background: var(--bg-cream);
+  background: var(--bg-surface-alt);
   color: var(--primary);
-  border: 1px solid var(--border-soft);
+  border: 1px solid var(--border);
   border-radius: var(--radius-pill);
-  padding: 6px 18px;
+  padding: 10px 24px;
   font-size: 0.85rem;
-  font-weight: 800;
+  font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 `;
 
-const Filters = styled.div`
+const FilterStrip = styled.div`
   display: flex;
-  gap: 20px;
-  margin-bottom: 40px;
+  gap: 16px;
+  margin-bottom: var(--spacing-xl);
   flex-wrap: wrap;
   align-items: center;
+  background: var(--bg-surface-alt);
+  padding: 20px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
 `;
 
 const SearchInput = styled.input`
-  padding: 18px 28px;
-  background: var(--white);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--radius-sm);
+  flex: 1;
+  min-width: 300px;
+  padding: 16px 24px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   font-size: 1rem;
+  color: var(--text-primary);
   font-weight: 600;
-  width: 320px;
-  transition: var(--transition);
-  &:focus { outline: none; border-color: var(--primary); box-shadow: var(--shadow-premium); }
-  &::placeholder { color: var(--text-muted); opacity: 0.5; }
+  transition: var(--transition-smooth);
+  &:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
 `;
 
 const FilterSelect = styled.select`
-  padding: 18px 24px;
-  background: var(--white);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--radius-sm);
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--primary);
+  padding: 16px 24px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  font-weight: 900;
+  color: var(--text-primary);
+  text-transform: uppercase;
   cursor: pointer;
-  transition: var(--transition);
-  &:focus { outline: none; border-color: var(--primary); }
+  &:focus { outline: none; border-color: var(--accent); }
 `;
 
 const TableCard = styled.div`
-  background: var(--white);
+  background: var(--bg-surface);
   border-radius: var(--radius-card);
   overflow: hidden;
-  box-shadow: var(--shadow-premium);
-  border: 1px solid var(--border-soft);
-`;
-
-const TableScroll = styled.div`
+  box-shadow: var(--shadow-subtle);
+  border: 1px solid var(--border);
   overflow-x: auto;
 `;
 
-const Table = styled.table`
+const EliteTable = styled.table`
   width: 100%;
   border-collapse: collapse;
+  thead th { padding: 24px; text-align: left; font-size: 0.7rem; font-weight: 900; color: var(--text-inverse); text-transform: uppercase; background: var(--primary); }
+  tbody td { padding: 24px; border-bottom: 1px solid var(--border); color: var(--text-primary); font-weight: 700; }
+  tbody tr:hover { background: var(--bg-surface-alt); }
+`;
 
-  thead th {
-    background: var(--primary);
-    padding: 24px 32px;
-    text-align: left;
-    font-size: 0.75rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--white);
-  }
-
-  tbody td {
-    padding: 24px 32px;
-    border-bottom: 1px solid var(--bg-cream);
-    color: var(--text-charcoal);
-    font-weight: 600;
-    vertical-align: middle;
-  }
-
-  tbody tr:last-child td { border-bottom: none; }
-  tbody tr:hover { background: var(--bg-cream); }
+const OrderId = styled.div`
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  font-weight: 900;
+  color: var(--text-primary);
+  background: var(--bg-surface-alt);
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  display: inline-block;
 `;
 
 const StatusBadge = styled.span`
   padding: 6px 14px;
   border-radius: var(--radius-pill);
-  font-size: 0.7rem;
-  font-weight: 800;
+  font-size: 0.65rem;
+  font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  background: ${p =>
-    p.$status === 'Completed' ? 'var(--bg-cream)' :
-    p.$status === 'Cancelled' ? '#fdf2f0' :
-    'var(--accent)'
-  };
-  color: ${p =>
-    p.$status === 'Completed' ? 'var(--primary)' :
-    p.$status === 'Cancelled' ? '#d46a4f' :
-    'var(--primary)'
-  };
-  border: 1px solid var(--border-soft);
+  background: ${p => p.$status === 'Completed' ? 'rgba(76, 175, 80, 0.1)' : p.$status === 'Cancelled' ? 'rgba(212, 106, 79, 0.1)' : 'rgba(245, 182, 17, 0.1)'};
+  color: ${p => p.$status === 'Completed' ? '#4CAF50' : p.$status === 'Cancelled' ? '#FF5252' : '#F5B611'};
+  border: 1px solid currentColor;
 `;
 
-const StatusSelect = styled.select`
-  padding: 10px 16px;
+const ActionBtn = styled.button`
+  padding: 10px 20px;
+  background: ${p => p.$accent ? 'var(--accent)' : 'var(--bg-surface-alt)'};
+  color: ${p => p.$accent ? 'var(--text-inverse)' : 'var(--text-primary)'};
+  border: 1px solid ${p => p.$accent ? 'var(--accent)' : 'var(--border)'};
   border-radius: var(--radius-pill);
-  border: 1px solid var(--border-soft);
-  font-size: 0.8rem;
-  font-weight: 800;
+  font-weight: 900;
+  font-size: 0.7rem;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
   cursor: pointer;
-  background: var(--white);
-  transition: var(--transition);
-  color: var(--primary);
-
-  &:focus { outline: none; border-color: var(--primary); }
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
+  transition: var(--transition-smooth);
+  
+  &:hover:not(:disabled) { background: ${p => p.$accent ? 'var(--primary)' : 'var(--primary)'}; color: var(--text-inverse); transform: translateY(-2px); box-shadow: var(--shadow-premium); }
+  &:disabled { opacity: 0.4; }
 `;
 
-const SpinnerWrap = styled.div`
+const ModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 15, 12, 0.7);
+  backdrop-filter: blur(20px);
+  z-index: 2000;
   display: flex;
-  justify-content: center;
   align-items: center;
-  min-height: 400px;
+  justify-content: center;
 `;
 
-const Spinner = styled.div`
-  width: 50px;
-  height: 50px;
-  border: 3px solid var(--bg-cream);
-  border-top-color: var(--primary);
-  border-radius: 50%;
-  animation: ${spin} 0.8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
-`;
-
-const EmptyState = styled.div`
-  text-align: center;
-  padding: 100px 24px;
-  background: var(--white);
+const ModalCard = styled.div`
+  background: var(--bg-surface);
+  padding: var(--spacing-xxl);
   border-radius: var(--radius-card);
-  border: 1px dashed var(--border-soft);
-
-  .icon { font-size: 4rem; display: block; margin-bottom: 24px; opacity: 0.5; }
-  h3 { font-size: 1.8rem; color: var(--primary); margin-bottom: 12px; }
-  p { color: var(--text-muted); font-weight: 500; }
+  width: 550px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-premium);
+  animation: entrance 0.4s ease;
 `;
 
-const OrderId = styled.div`
-  font-family: 'Inter', sans-serif;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  font-weight: 800;
-  background: var(--bg-cream);
-  padding: 4px 10px;
-  border-radius: 6px;
-  display: inline-block;
-`;
-
-const ItemsList = styled.div`
-  max-width: 280px;
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  line-height: 1.5;
-  font-weight: 500;
+const FormGroup = styled.div`
+  margin-bottom: 24px;
+  label { display: block; font-size: 0.75rem; font-weight: 900; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 8px; }
+  input, select, textarea {
+    width: 100%;
+    padding: 18px;
+    background: var(--bg-surface-alt);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    color: var(--text-primary);
+    font-weight: 700;
+    transition: var(--transition-smooth);
+    &:focus { outline: none; border-color: var(--accent); }
+  }
 `;
 
 // ===== COMPONENT =====
 const AdminOrders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showCommHub, setShowCommHub] = useState(false);
+  const [commHubOrder, setCommHubOrder] = useState(null);
+  
+  // Filtering & Pagination
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalRecords, setTotalRecords] = useState(0);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
-  const [updating, setUpdating] = useState(null);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
-  const fetchOrders = () => {
-    api.get('/orders')
-      .then(res => setOrders(res.data.orders || []))
-      .catch(console.error)
-      .finally(() => setLoading(false));
+  // Payment State
+  const [payTarget, setPayTarget] = useState(null);
+  const [accounts, setAccounts] = useState([]);
+  const [payForm, setPayForm] = useState({ amount:'', method:'Cash', accountId:'', paidAt: new Date().toISOString().slice(0,10), reference:'', note:'' });
+  const [paying, setPaying] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => { setDebouncedSearch(search); setPage(1); }, 500);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const fetchOrders = async () => {
+    setLoading(true);
+    try {
+      const statusQuery = statusFilter !== 'All' ? `&status=${statusFilter}` : "";
+      const dateQuery = (startDate ? `&createdAt[gte]=${startDate}` : "") + (endDate ? `&createdAt[lte]=${endDate}` : "");
+      const res = await api.get(`/orders?page=${page}&limit=10&search=${debouncedSearch}${statusQuery}${dateQuery}`);
+      setOrders(res.data.orders || []);
+      if (res.data.pagination) {
+        setTotalPages(res.data.pagination.totalPages);
+        setTotalRecords(res.data.pagination.totalRecords);
+      }
+    } catch (err) { console.error(err); }
+    finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchOrders(); }, []);
+  useEffect(() => { fetchOrders(); }, [page, debouncedSearch, statusFilter, startDate, endDate]);
 
-  const filtered = orders.filter(o => {
-    const matchSearch = search === '' ||
-      `${o.farmer?.first_name} ${o.farmer?.last_name}`.toLowerCase().includes(search.toLowerCase()) ||
-      o.farmerPhone?.includes(search) ||
-      o._id.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = statusFilter === 'All' || o.status === statusFilter;
-    return matchSearch && matchStatus;
-  });
+  const handleRecordPayment = async (e) => {
+    e.preventDefault();
+    setPaying(true);
+    try {
+      await api.post(`/admin/orders/${payTarget._id}/payment`, { ...payForm, amount: Number(payForm.amount) });
+      setPayTarget(null); fetchOrders();
+    } catch (err) { alert(err.response?.data?.message || 'Authorization Refused.'); }
+    finally { setPaying(false); }
+  };
 
-  const handleStatusChange = async (orderId, status) => {
-    setUpdating(orderId);
+  const handleStatusUpdate = async (orderId, status) => {
     try {
       await api.put(`/admin/orders/${orderId}/status`, { status });
       fetchOrders();
-    } catch (err) {
-      alert(err.response?.data?.message || 'Fulfillment Update Failed');
-    } finally {
-      setUpdating(null);
-    }
+    } catch (err) { alert('Status authorization failure.'); }
   };
+
+  const triggerCommHub = (o) => { setCommHubOrder(o); setShowCommHub(true); };
 
   return (
     <PageContainer>
       <Topbar>
-        <PageTitle>
-          Fulfillment Registry
-          <CountBadge>{filtered.length} ACTIVE MANIFESTS</CountBadge>
-        </PageTitle>
+        <PageTitle>Procurement Logs <small>Operational Fulfillment & Logistics Control</small></PageTitle>
+        <div style={{display:'flex', gap:'16px'}}>
+          <ActionBtn onClick={() => generateOrderReport({ orders })}>📤 Bulk Report Export</ActionBtn>
+          <CountBadge>{totalRecords} ACTIVE RECORDS</CountBadge>
+        </div>
       </Topbar>
 
-      <Filters>
-        <SearchInput
-          type="text"
-          placeholder="Search by ID, Name or Contact..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-        />
+      <FilterStrip>
+        <SearchInput placeholder="Filter by ID, entity or tactical contact..." value={search} onChange={e => setSearch(e.target.value)} />
         <FilterSelect value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
-          <option value="All">All Operations</option>
-          <option value="Pending">🕒 PENDING FULFILLMENT</option>
-          <option value="Completed">✅ DEPLOYED / COMPLETED</option>
-          <option value="Cancelled">❌ CANCELLED / ABORTED</option>
+          <option value="All">All Statuses</option>
+          <option value="Pending">🕒 Pending</option>
+          <option value="Completed">✅ FULFILLED</option>
+          <option value="Cancelled">❌ VOIDED</option>
         </FilterSelect>
-      </Filters>
+        <div style={{display:'flex', gap:'12px', alignItems:'center'}}>
+          <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={{background:'var(--bg-surface)', border:'1px solid var(--border)', padding:'10px', borderRadius:'8px', color:'var(--text-primary)'}} />
+          <span style={{fontSize:'1.2rem'}}>→</span>
+          <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{background:'var(--bg-surface)', border:'1px solid var(--border)', padding:'10px', borderRadius:'8px', color:'var(--text-primary)'}} />
+        </div>
+        {(search || statusFilter !== 'All' || startDate || endDate) && <ActionBtn onClick={() => {setSearch(''); setStatusFilter('All'); setStartDate(''); setEndDate('');}}>Reset</ActionBtn>}
+      </FilterStrip>
 
       {loading ? (
-        <SpinnerWrap><Spinner /></SpinnerWrap>
-      ) : filtered.length === 0 ? (
-        <EmptyState>
-          <div className="icon">📦</div>
-          <h3>No manifest match found</h3>
-          <p>No operational data matches the current search criteria.</p>
-        </EmptyState>
+        <div style={{display:'flex',justifyContent:'center',padding:'120px'}}><div style={{width:'60px',height:'60px',border:'5px solid var(--border)',borderTopColor:'var(--primary)',borderRadius:'50%',animation:'spin 0.8s linear infinite'}} /></div>
+      ) : orders.length === 0 ? (
+        <div style={{textAlign:'center', padding:'100px', background:'var(--bg-surface)', borderRadius:'var(--radius-card)', border:'1px dashed var(--border)'}}>
+          <h3 style={{color:'var(--text-secondary)'}}>No operational orders discovered.</h3>
+        </div>
       ) : (
         <TableCard>
-          <TableScroll>
-            <Table>
-              <thead>
-                <tr>
-                  <th>Trace ID</th>
-                  <th>Consignee</th>
-                  <th>Manifest Assets</th>
-                  <th>Institutional Value</th>
-                  <th>Operation Date</th>
-                  <th>Fulfillment Status</th>
-                  <th style={{textAlign: 'right'}}>Authorization</th>
+          <EliteTable>
+            <thead>
+              <tr><th>Ref ID</th><th>Stakeholder</th><th>Asset Manifest</th><th>Financial Status</th><th>Protocol Phase</th><th>Logistics</th><th>Operations</th></tr>
+            </thead>
+            <tbody>
+              {orders.map(o => (
+                <tr key={o._id}>
+                  <td><OrderId>#{o._id.slice(-8).toUpperCase()}</OrderId></td>
+                  <td>
+                    <div style={{fontWeight:900, color:'var(--text-primary)'}}>{o.farmer?.first_name} {o.farmer?.last_name}</div>
+                    <div style={{display:'flex', alignItems:'center', gap:'8px', marginTop:'4px'}}>
+                      <span style={{fontSize:'0.75rem', color:'var(--text-secondary)', fontWeight:800}}>{o.farmerPhone}</span>
+                      <button onClick={() => triggerCommHub(o)} style={{width:'24px',height:'24px',background:'var(--primary)',borderRadius:'50%',fontSize:'11px',border:'none',color:'white', cursor:'pointer'}}>💬</button>
+                    </div>
+                  </td>
+                  <td style={{fontSize:'0.85rem', color:'var(--text-secondary)', maxWidth:'250px'}}>{o.items?.map(i => i.product?.name).join(', ')}</td>
+                  <td>
+                    <div style={{fontWeight:900, color:'var(--text-primary)'}}>Rs. {o.grandTotal.toLocaleString()}</div>
+                    <div style={{fontSize:'0.7rem', fontWeight:900, color: o.amountPaid >= o.grandTotal ? '#4CAF50' : '#FF5252', marginTop:'4px'}}>
+                      {o.amountPaid >= o.grandTotal ? 'FULLY SETTLED' : `OWED: Rs. ${(o.grandTotal - o.amountPaid).toLocaleString()}`}
+                    </div>
+                  </td>
+                  <td><StatusBadge $status={o.status}>{o.status}</StatusBadge></td>
+                  <td style={{fontSize:'0.85rem', color:'var(--text-secondary)', fontWeight:800}}>{new Date(o.pickupDate).toLocaleDateString()}</td>
+                  <td>
+                    <div style={{display:'flex', gap:'8px'}}>
+                      <ActionBtn onClick={() => generateSingleInvoice(o)}>Print</ActionBtn>
+                      <ActionBtn $accent onClick={() => { setPayTarget(o); api.get('/accounts').then(r => setAccounts(r.data.accounts || [])); }}>Pay</ActionBtn>
+                      <select style={{padding:'8px', borderRadius:'var(--radius-pill)', background:'var(--bg-surface-alt)', border:'1px solid var(--border)', fontSize:'0.7rem', fontWeight:900}} value={o.status} onChange={e => handleStatusUpdate(o._id, e.target.value)}>
+                        <option value="Pending">Pending</option>
+                        <option value="Completed">FULFILLED</option>
+                        <option value="Cancelled">VOIDED</option>
+                      </select>
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {filtered.map(o => (
-                  <tr key={o._id}>
-                    <td><OrderId>#{o._id.slice(-8).toUpperCase()}</OrderId></td>
-                    <td>
-                      <div style={{fontWeight:800, color: 'var(--primary)', fontSize: '1.1rem'}}>{o.farmer?.first_name} {o.farmer?.last_name}</div>
-                      <div style={{fontSize:'0.8rem', color:'var(--text-muted)', fontWeight: 700}}>{o.farmerPhone}</div>
-                    </td>
-                    <td>
-                      <ItemsList>
-                        {o.items?.map(i => i.product?.name).join(', ')}
-                      </ItemsList>
-                    </td>
-                    <td style={{ fontWeight: 800, color: 'var(--text-charcoal)' }}>Rs. {o.totalAmount?.toLocaleString()}</td>
-                    <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600 }}>
-                      {new Date(o.pickupDate).toLocaleDateString('en-PK', {day:'numeric', month:'short', year: 'numeric'})}
-                    </td>
-                    <td><StatusBadge $status={o.status}>{o.status}</StatusBadge></td>
-                    <td style={{textAlign: 'right'}}>
-                      <StatusSelect
-                        value={o.status}
-                        disabled={updating === o._id}
-                        onChange={e => handleStatusChange(o._id, e.target.value)}
-                      >
-                        <option value="Pending">Mark Pending</option>
-                        <option value="Completed">Authorize Completion</option>
-                        <option value="Cancelled">Authorize Cancellation</option>
-                      </StatusSelect>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          </TableScroll>
+              ))}
+            </tbody>
+          </EliteTable>
         </TableCard>
+      )}
+
+      {totalPages > 1 && (
+        <div style={{display:'flex', justifyContent:'center', margin:'40px 0', gap:'20px'}}>
+          <ActionBtn onClick={() => setPage(p => p - 1)} disabled={page === 1}>← PREV</ActionBtn>
+          <span style={{fontWeight:900, color:'var(--primary)'}}>{page} / {totalPages}</span>
+          <ActionBtn onClick={() => setPage(p => p + 1)} disabled={page === totalPages}>NEXT →</ActionBtn>
+        </div>
+      )}
+
+      {payTarget && (
+        <ModalOverlay onClick={() => setPayTarget(null)}>
+          <ModalCard onClick={e => e.stopPropagation()}>
+            <h3 style={{fontSize:'2.2rem', marginBottom:'32px'}}>Execute Strategic Settlement</h3>
+            <form onSubmit={handleRecordPayment}>
+              <FormGroup><label>Monetary Magnitude (Rs.)</label><input type="number" required value={payForm.amount} onChange={e => setPayForm({...payForm, amount: e.target.value})} /></FormGroup>
+              <FormGroup><label>Settlement Method</label><select value={payForm.method} onChange={e => setPayForm({...payForm, method: e.target.value})}><option value="Cash">In-Hand Cash</option><option value="Bank Transfer">Institutional Bank Transfer</option><option value="Credit">Stakeholder Credit Line</option></select></FormGroup>
+              <FormGroup><label>Ledger Allocation</label><select value={payForm.accountId} onChange={e => setPayForm({...payForm, accountId: e.target.value})}><option value="">-- Manual Journal Entry --</option>{accounts.map(a => <option key={a._id} value={a._id}>{a.name} (AVAIL: {a.balance.toLocaleString()})</option>)}</select></FormGroup>
+              <FormGroup><label>Audit Note</label><textarea rows={3} value={payForm.note} onChange={e => setPayForm({...payForm, note: e.target.value})} /></FormGroup>
+              <div style={{display:'flex', gap:'16px', marginTop:'32px'}}>
+                <ActionBtn type="button" onClick={() => setPayTarget(null)} style={{flex:1}}>Abort</ActionBtn>
+                <ActionBtn type="submit" disabled={paying} $accent style={{flex:1}}>{paying ? 'COMMITTING...' : 'Authorize Strategic Settlement'}</ActionBtn>
+              </div>
+            </form>
+          </ModalCard>
+        </ModalOverlay>
+      )}
+
+      {showCommHub && (
+        <CommHubModal isOpen={showCommHub} onClose={() => setShowCommHub(false)} order={commHubOrder} onSendEmail={async (e, s, t) => { await api.post('/auth/send-template-email', { email: e, subject: s, text: t }); alert('Institutional Dispatch Successful.'); }} />
       )}
     </PageContainer>
   );
 };
 
-export default AdminOrders;
+export default AdminOrders;

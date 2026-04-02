@@ -2,82 +2,106 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import api from "../api";
 import { useAuth } from "../context/AuthContext";
+import { Button, GlassCard } from "../styles/StyledComponents";
 
+// ===== STYLED COMPONENTS =====
 const Wrapper = styled.div`
-  margin-top: 40px;
-  padding-top: 40px;
-  border-top: 1px solid var(--border-soft);
+  margin-top: 60px;
+  padding-top: 60px;
+  border-top: 1px solid var(--border);
 `;
 
 const Title = styled.h3`
-  font-size: 1.5rem;
-  color: var(--primary);
-  margin-bottom: 24px;
+  font-size: 2rem;
+  color: var(--text-primary);
+  margin-bottom: 32px;
+  letter-spacing: -0.02em;
 `;
 
 const ReviewCard = styled.div`
-  background: var(--bg-cream);
-  padding: 24px;
-  border-radius: 12px;
-  margin-bottom: 16px;
+  background: var(--bg-surface-alt);
+  padding: 32px;
+  border-radius: var(--radius-md);
+  margin-bottom: 24px;
+  border: 1px solid var(--border);
+  transition: var(--transition-smooth);
+  
+  &:hover { border-color: var(--accent); transform: translateX(8px); }
 `;
 
 const ReviewHeader = styled.div`
   display: flex;
   justify-content: space-between;
-  margin-bottom: 8px;
-  span.name { font-weight: 800; color: var(--primary); }
-  span.date { font-size: 0.8rem; color: var(--text-muted); }
+  align-items: center;
+  margin-bottom: 12px;
+  
+  .author {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 900;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+  }
+  
+  .date { font-size: 0.75rem; color: var(--text-secondary); font-weight: 700; opacity: 0.6; }
 `;
 
-const Rating = styled.div`
+const StarRating = styled.div`
   color: var(--accent);
   font-size: 1.1rem;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
+  letter-spacing: 2px;
 `;
 
 const Comment = styled.p`
-  font-size: 0.95rem;
-  line-height: 1.5;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  font-weight: 600;
 `;
 
-const Form = styled.form`
-  margin-top: 32px;
-  padding: 30px;
-  background: var(--white);
-  border: 1px solid var(--border-soft);
-  border-radius: 12px;
+const FeedbackForm = styled.form`
+  margin-top: 48px;
+  padding: 48px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-subtle);
 `;
 
 const StarInput = styled.div`
   display: flex;
-  gap: 8px;
-  margin-bottom: 20px;
+  gap: 10px;
+  margin-bottom: 32px;
+  
   button { 
-    background: none; border: none; font-size: 2rem; cursor: pointer; 
-    filter: ${p => p.active ? 'grayscale(0)' : 'grayscale(1)'};
-    opacity: ${p => p.active ? 1 : 0.3};
+    background: none; border: none; font-size: 2.5rem; cursor: pointer; 
+    transition: var(--transition-smooth);
+    opacity: ${p => p.$active ? 1 : 0.2};
+    filter: ${p => p.$active ? 'none' : 'grayscale(1)'};
+    &:hover { transform: scale(1.2); opacity: 1; }
   }
 `;
 
-const Textarea = styled.textarea`
+const ResponseField = styled.textarea`
   width: 100%;
-  padding: 16px;
-  border: 1px solid var(--border-soft);
-  border-radius: 8px;
-  min-height: 100px;
-  margin-bottom: 16px;
-  &:focus { outline: none; border-color: var(--primary); }
-`;
-
-const SubmitBtn = styled.button`
-  padding: 14px 28px;
-  background: var(--text-charcoal);
-  color: var(--white);
-  border-radius: var(--radius-pill);
-  font-weight: 800;
-  &:hover { background: var(--primary); }
-  &:disabled { opacity: 0.5; }
+  padding: 24px;
+  background: var(--bg-surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  color: var(--text-primary);
+  font-weight: 700;
+  min-height: 140px;
+  margin-bottom: 32px;
+  transition: var(--transition-smooth);
+  
+  &:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
+  &::placeholder { color: var(--text-secondary); opacity: 0.4; }
 `;
 
 const ReviewSection = ({ productId }) => {
@@ -93,59 +117,65 @@ const ReviewSection = ({ productId }) => {
       .catch(console.error);
   };
 
-  useEffect(() => {
-    fetchReviews();
-  }, [productId]);
+  useEffect(() => { fetchReviews(); }, [productId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!user) return alert("Authorize login to post reviews.");
+    if (!user) return alert("Strategic Authorization required for feedback submission.");
     setLoading(true);
     try {
       await api.post(`/products/${productId}/reviews`, { rating, comment });
       setComment("");
       fetchReviews();
-    } catch (err) {
-      alert(err.response?.data?.message || "Review failed");
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { alert(err.response?.data?.message || "Operational communication failure."); } 
+    finally { setLoading(false); }
   };
 
   return (
     <Wrapper>
-      <Title>Community Ratings & Feedback</Title>
+      <Title>Stakeholder Feedback Ledger</Title>
       
       {reviews.length === 0 ? (
-        <p style={{ color:'var(--text-muted)' }}>No feedback available yet for this asset.</p>
+        <p style={{ color:'var(--text-secondary)', fontWeight: 700, fontStyle: 'italic' }}>No operational feedback currently registered for this asset.</p>
       ) : (
         reviews.map(r => (
           <ReviewCard key={r._id}>
             <ReviewHeader>
-              <span className="name">{r.farmer?.first_name} {r.farmer?.last_name}</span>
-              <span className="date">{new Date(r.createdAt).toLocaleDateString()}</span>
+              <div className="author">
+                <div style={{ width: 32, height: 32, background: 'var(--primary)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.8rem' }}>
+                  {r.farmer?.first_name?.[0]}{r.farmer?.last_name?.[0]}
+                </div>
+                <span>{r.farmer?.first_name} {r.farmer?.last_name}</span>
+              </div>
+              <span className="date">Authenticated on {new Date(r.createdAt).toLocaleDateString()}</span>
             </ReviewHeader>
-            <Rating>{'★'.repeat(r.rating)}{'☆'.repeat(5-r.rating)}</Rating>
+            <StarRating>{'★'.repeat(r.rating)}{'☆'.repeat(5-r.rating)}</StarRating>
             <Comment>{r.comment}</Comment>
           </ReviewCard>
         ))
       )}
 
       {user && (
-        <Form onSubmit={handleSubmit}>
-          <h4 style={{ marginBottom:'16px' }}>Provide Operational Feedback</h4>
+        <FeedbackForm onSubmit={handleSubmit}>
+          <h4 style={{ marginBottom: '24px', fontSize: '1.2rem', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 900 }}>Authorize Operational Review</h4>
           <StarInput>
             {[1,2,3,4,5].map(s => (
-              <button key={s} type="button" active={rating >= s} onClick={() => setRating(s)}>⭐</button>
+              <button key={s} type="button" $active={rating >= s} onClick={() => setRating(s)}>🌟</button>
             ))}
           </StarInput>
-          <Textarea 
-            placeholder="Technical comments, crop results, quality notes..." 
+          <ResponseField 
+            placeholder="Document your technical results, yield observations, or asset performance notes..." 
             value={comment}
             onChange={e => setComment(e.target.value)}
+            required
           />
-          <SubmitBtn type="submit" disabled={loading}>Submit Review</SubmitBtn>
-        </Form>
+          <Button type="submit" disabled={loading} block primary>
+            {loading ? "TRANSMITTING..." : "COMMIT FEEDBACK TO LOG"}
+          </Button>
+          <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 800, opacity: 0.6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            ⚠️ Feedback will be visible to institutional personnel.
+          </p>
+        </FeedbackForm>
       )}
     </Wrapper>
   );

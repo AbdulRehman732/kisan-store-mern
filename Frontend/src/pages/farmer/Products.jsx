@@ -7,380 +7,242 @@ import { useCart } from "../../context/CartContext";
 import OrderModal from "../../components/OrderModal";
 import ProductDetailModal from "../../components/ProductDetailModal";
 
-const fadeIn = keyframes`
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+// ===== STYLED COMPONENTS =====
+const PageWrap = styled.div`
+  min-height: calc(100vh - 120px);
+  background: var(--bg-app);
+  padding: 80px 24px;
 `;
 
-// ===== STYLED COMPONENTS =====
 const Container = styled.div`
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 30px;
-`;
-
-const PageContent = styled.div`
-  padding: 60px 0 100px;
+  animation: entrance 1s cubic-bezier(0.16, 1, 0.3, 1);
 `;
 
 const PageHeader = styled.div`
   text-align: center;
-  margin-bottom: 60px;
-  animation: ${fadeIn} 0.6s ease-out;
+  margin-bottom: var(--spacing-xxl);
 `;
 
 const PageTitle = styled.h1`
-  font-size: clamp(3rem, 5vw, 4.5rem);
+  font-size: clamp(3.5rem, 6vw, 5.5rem);
+  color: var(--text-primary);
   margin-bottom: 16px;
-  letter-spacing: -0.02em;
-  color: var(--primary);
 `;
 
 const PageDescription = styled.p`
-  font-size: 1.2rem;
-  color: var(--text-muted);
-  max-width: 600px;
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  max-width: 700px;
   margin: 0 auto;
-  line-height: 1.6;
+  line-height: 1.8;
+  font-weight: 500;
+  opacity: 0.8;
 `;
 
 const SearchContainer = styled.div`
-  max-width: 800px;
-  margin: 0 auto 60px;
+  max-width: 850px;
+  margin: 0 auto 80px;
   position: relative;
-  z-index: 10;
 `;
 
 const SearchBar = styled.div`
-  background: var(--white);
-  padding: 10px;
+  background: var(--glass-heavy);
+  backdrop-filter: blur(25px);
+  padding: 12px;
   border-radius: var(--radius-pill);
   box-shadow: var(--shadow-premium);
   display: flex;
   align-items: center;
-  border: 1px solid var(--border-soft);
-  transition: var(--transition);
+  border: 1px solid var(--border);
+  transition: var(--transition-smooth);
 
   &:focus-within {
-    box-shadow: 0 30px 60px rgba(245, 182, 17, 0.15);
+    transform: translateY(-5px);
     border-color: var(--accent);
+    box-shadow: 0 30px 60px var(--accent-glow);
   }
-`;
-
-const SearchIcon = styled.div`
-  padding: 0 20px;
-  font-size: 1.2rem;
-  color: var(--text-muted);
 `;
 
 const SearchInput = styled.input`
   flex: 1;
   border: none;
-  font-size: 1.1rem;
-  font-family: "Inter", sans-serif;
-  color: var(--text-charcoal);
+  font-size: 1.2rem;
+  font-family: inherit;
+  color: var(--text-primary);
   background: transparent;
-  padding: 10px 0;
+  padding: 12px 24px;
   
-  &::placeholder {
-    color: var(--text-muted);
-    opacity: 0.6;
-  }
-  
+  &::placeholder { color: var(--text-secondary); opacity: 0.5; }
   &:focus { outline: none; }
 `;
 
 const SearchBtn = styled.button`
-  background: var(--accent);
-  color: var(--primary);
-  padding: 16px 36px;
+  background: var(--primary);
+  color: var(--text-inverse);
+  padding: 18px 40px;
   border-radius: var(--radius-pill);
   font-weight: 900;
-  font-size: 0.95rem;
-  letter-spacing: 0.1em;
+  font-size: 0.9rem;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
-  box-shadow: 0 8px 20px rgba(245, 182, 17, 0.2);
+  transition: var(--transition-smooth);
 
   &:hover {
-    background: var(--primary);
-    color: var(--white);
-    transform: translateY(-2px);
+    background: var(--accent);
+    color: var(--text-inverse);
   }
 `;
 
 const Layout = styled.div`
   display: grid;
   grid-template-columns: 320px 1fr;
-  gap: 60px;
-  
-  @media (max-width: 1024px) {
-    grid-template-columns: 1fr;
-  }
+  gap: var(--spacing-xxl);
+  @media (max-width: 1100px) { grid-template-columns: 1fr; }
 `;
 
 const FilterPanel = styled.div`
-  background: var(--white);
+  background: var(--bg-surface);
   border-radius: var(--radius-card);
-  padding: 40px 30px;
-  border: 1px solid var(--border-soft);
+  padding: 48px 32px;
+  border: 1px solid var(--border);
   position: sticky;
   top: 120px;
-  box-shadow: var(--shadow-card);
+  height: fit-content;
+  box-shadow: var(--shadow-subtle);
 `;
 
 const FilterGroup = styled.div`
-  margin-bottom: 40px;
-  
+  margin-bottom: 48px;
   h4 {
-    font-size: 1.2rem;
-    color: var(--primary);
+    font-size: 0.85rem;
+    color: var(--text-secondary);
     margin-bottom: 24px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    opacity: 0.6;
+    border-bottom: 1px solid var(--border);
     padding-bottom: 12px;
-    border-bottom: 2px solid var(--bg-cream);
-    letter-spacing: -0.01em;
   }
 `;
 
-const FilterOption = styled.label`
+const FilterOption = styled.button`
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 14px;
-  cursor: pointer;
-  padding: 12px 16px;
+  padding: 14px 20px;
   font-size: 1rem;
   font-weight: 700;
-  color: ${p => p.active ? 'var(--primary)' : 'var(--text-muted)'};
-  background: ${p => p.active ? 'var(--bg-cream)' : 'transparent'};
-  border-radius: var(--radius-sm);
-  transition: var(--transition);
+  color: ${p => p.$active ? 'var(--primary)' : 'var(--text-secondary)'};
+  background: ${p => p.$active ? 'var(--bg-surface-alt)' : 'transparent'};
+  border-radius: var(--radius-md);
+  transition: var(--transition-smooth);
   margin-bottom: 4px;
+  border: 1px solid ${p => p.$active ? 'var(--primary)' : 'transparent'};
 
   &:hover {
-    background: var(--bg-cream);
+    background: var(--bg-surface-alt);
     color: var(--primary);
-    transform: translateX(4px);
-  }
-
-  input { display: none; }
-`;
-
-const ActiveMark = styled.div`
-  width: 20px;
-  height: 20px;
-  border-radius: 6px;
-  border: 2px solid ${p => p.active ? 'var(--accent)' : 'var(--border-soft)'};
-  background: ${p => p.active ? 'var(--accent)' : 'transparent'};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: var(--transition);
-  
-  &::after {
-    content: '';
-    width: 6px;
-    height: 10px;
-    border: solid var(--primary);
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
-    display: ${p => p.active ? 'block' : 'none'};
-    margin-top: -2px;
+    transform: translateX(8px);
   }
 `;
 
-const ResetFiltersBtn = styled.button`
-  width: 100%;
-  padding: 16px;
-  border-radius: var(--radius-pill);
-  border: 2px solid var(--border-soft);
-  background: transparent;
-  color: var(--text-muted);
-  font-weight: 800;
-  font-size: 0.9rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  
-  &:hover {
-    border-color: var(--primary);
-    color: var(--primary);
-    background: var(--bg-cream);
-  }
+const CategoryIndicator = styled.div`
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: ${p => p.$active ? 'var(--accent)' : 'var(--border)'};
+  transition: var(--transition-fast);
 `;
 
 const ProductGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 40px;
+  gap: var(--spacing-xl);
 `;
 
-const ProductCard = styled.div`
-  background: var(--white);
+const Card = styled.div`
+  background: var(--bg-surface);
   border-radius: var(--radius-card);
-  padding: 24px;
-  border: 1px solid var(--border-soft);
-  box-shadow: var(--shadow-card);
-  transition: var(--transition);
+  padding: 28px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-subtle);
+  transition: var(--transition-smooth);
   display: flex;
   flex-direction: column;
 
   &:hover {
-    transform: translateY(-20px);
+    transform: translateY(-15px);
     box-shadow: var(--shadow-premium);
     border-color: var(--accent);
   }
 `;
 
-const ProductImg = styled.div`
-  height: 280px;
-  background: var(--bg-cream);
-  border-radius: 24px;
+const ImgArea = styled.div`
+  aspect-ratio: 1;
+  background: var(--bg-surface-alt);
+  border-radius: var(--radius-lg);
+  margin-bottom: 24px;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 24px;
-  overflow: hidden;
-  position: relative;
-  
-  img { 
-    width: 100%; 
-    height: 100%; 
-    object-fit: cover; 
-    transition: transform 0.8s ease; 
-  }
-  
-  ${ProductCard}:hover & img {
-    transform: scale(1.05);
-  }
+  font-size: 4rem;
+  border: 1px solid var(--border);
+
+  img { width: 100%; height: 100%; object-fit: cover; transition: var(--transition-slow); }
+  ${Card}:hover & img { transform: scale(1.1) rotate(2deg); }
 `;
 
-const CategoryBadge = styled.div`
-  display: inline-block;
-  padding: 8px 16px;
-  background: ${p => p.$category === 'Fertilizer' ? '#e8f5ed' : '#fff9e6'};
-  color: ${p => p.$category === 'Fertilizer' ? '#1e5330' : '#b45309'};
-  border-radius: var(--radius-pill);
-  font-size: 0.75rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  margin-bottom: 16px;
-  letter-spacing: 0.05em;
-`;
-
-const ProductName = styled.h3`
+const Name = styled.h3`
   font-size: 1.8rem;
-  margin-bottom: 12px;
-  letter-spacing: -0.01em;
-  flex-shrink: 0;
+  color: var(--text-primary);
+  margin-bottom: 8px;
 `;
 
-const ProductDesc = styled.p`
-  color: var(--text-muted);
-  font-size: 1rem;
-  line-height: 1.6;
-  margin-bottom: 24px;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  flex-grow: 1;
-`;
-
-const ProductFooterWrapper = styled.div`
-  margin-top: auto;
-`;
-
-const PricingArea = styled.div`
+const InfoRow = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
-  padding-bottom: 20px;
-  margin-bottom: 20px;
-  border-bottom: 1px solid var(--border-soft);
+  align-items: center;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
 `;
 
-const PriceTag = styled.div`
-  font-size: 1.6rem;
+const Price = styled.div`
+  font-size: 1.8rem;
   font-weight: 900;
-  color: var(--primary);
-  
-  small {
-    font-weight: 500;
-    font-size: 0.9rem;
-    color: var(--text-muted);
-    margin-left: 4px;
-  }
+  color: var(--text-primary);
+  span { font-size: 0.9rem; color: var(--text-secondary); margin-left: 4px; font-weight: 600; }
 `;
 
-const StockTag = styled.div`
-  font-size: 0.8rem;
-  font-weight: 800;
-  padding: 6px 12px;
-  border-radius: var(--radius-pill);
-  background: ${p => p.$inStock ? 'rgba(30, 83, 48, 0.1)' : 'rgba(212, 106, 79, 0.1)'};
-  color: ${p => p.$inStock ? '#1e5330' : '#d46a4f'};
-`;
-
-const ActionButtonGroup = styled.div`
-  display: flex;
+const BtnGroup = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 2fr;
   gap: 12px;
+  margin-top: 24px;
 `;
 
-const ActionBtn = styled.button`
-  flex: 1;
-  padding: 16px 12px;
+const PrimaryBtn = styled.button`
+  background: var(--primary);
+  color: var(--text-inverse);
+  padding: 16px;
   border-radius: var(--radius-pill);
   font-weight: 900;
   font-size: 0.85rem;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  
-  &.primary {
-    background: var(--primary);
-    color: var(--white);
-    &:hover:not(:disabled) {
-      background: var(--accent);
-      color: var(--primary);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(245, 182, 17, 0.3);
-    }
-  }
-  
-  &.secondary {
-    background: var(--bg-cream);
-    color: var(--primary);
-    &:hover:not(:disabled) {
-      background: #e6e0d4;
-      transform: translateY(-2px);
-    }
-  }
-  
-  &:disabled { 
-    opacity: 0.5; 
-    cursor: not-allowed; 
-  }
+  letter-spacing: 0.1em;
+  transition: var(--transition-smooth);
+  &:hover { background: var(--accent); transform: translateY(-2px); box-shadow: 0 10px 25px var(--accent-glow); }
+  &:disabled { opacity: 0.4; pointer-events: none; }
 `;
 
-const LoadingState = styled.div`
-  text-align: center;
-  padding: 120px 0;
-  font-size: 1.2rem;
-  color: var(--text-muted);
-  font-weight: 600;
-`;
-
-const EmptyState = styled.div`
-  text-align: center;
-  padding: 120px 40px;
-  background: var(--white);
-  border-radius: var(--radius-card);
-  border: 1px dashed var(--border-soft);
-  
-  .icon { font-size: 4rem; opacity: 0.4; margin-bottom: 24px; }
-  h3 { font-size: 1.8rem; color: var(--primary); margin-bottom: 12px; }
-  p { color: var(--text-muted); font-size: 1.1rem; }
+const SecondaryBtn = styled(PrimaryBtn)`
+  background: var(--bg-surface-alt);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  &:hover { background: var(--bg-app); border-color: var(--primary); box-shadow: none; }
 `;
 
 // ===== COMPONENT =====
@@ -400,14 +262,11 @@ const Products = () => {
   const [category, setCategory] = useState("All");
   const [crop, setCrop] = useState("All");
   const [availability, setAvailability] = useState("all");
-
   const [debouncedSearch, setDebouncedSearch] = useState(search);
 
   useEffect(() => {
-    const timerId = setTimeout(() => {
-      setDebouncedSearch(search);
-    }, 500);
-    return () => clearTimeout(timerId);
+    const timer = setTimeout(() => setDebouncedSearch(search), 500);
+    return () => clearTimeout(timer);
   }, [search]);
 
   const fetchProducts = useCallback(async () => {
@@ -418,8 +277,6 @@ const Products = () => {
       if (category !== "All") params.category = category;
       if (crop !== "All") params.crop = crop;
       if (availability !== "all") params.availability = availability;
-      // Removed unused min/max price for cleaner UI right now
-      
       const res = await api.get("/products", { params });
       setProducts(res.data.products || []);
     } catch (err) {
@@ -429,153 +286,117 @@ const Products = () => {
     }
   }, [debouncedSearch, category, crop, availability]);
 
-  useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+  useEffect(() => { fetchProducts(); }, [fetchProducts]);
 
-  const handleOrderClick = (product) => {
-    if (!user) {
-      alert("Please login to place an order");
-      return;
-    }
-    setSelectedProduct(product);
+  const handleOrderClick = (p) => {
+    if (!user) return alert("Authorization required. Please login.");
+    setSelectedProduct(p);
     setShowOrderModal(true);
   };
 
-  const handleDetailClick = (product) => {
-    setSelectedProduct(product);
-    setShowDetailModal(true);
-  };
-
-  const handleAddToCart = (product) => {
-    addToCart(product);
-  };
-
   return (
-    <Container>
-      <PageContent>
+    <PageWrap>
+      <Container>
         <PageHeader>
-          <div className="pill-label">INSTITUTIONAL CATALOG</div>
-          <PageTitle>Agricultural Marketplace</PageTitle>
+          <PageTitle>Agricultural Exchange</PageTitle>
           <PageDescription>
-            Explore our curated selection of premium fertilizers and high-yield seeds. Formulated for maximum output and soil health.
+            Tactical procurement of elite-grade fertilizers and high-yield genetic seeds. 
+            Calibrated for peak institutional production.
           </PageDescription>
         </PageHeader>
 
         <SearchContainer>
           <SearchBar>
-            <SearchIcon>🔍</SearchIcon>
+            <span style={{padding:'0 24px', fontSize:'1.4rem'}}>🔍</span>
             <SearchInput
               type="text"
-              placeholder="Search by product name, category or nutrient..."
+              placeholder="Search assets by name, class or specification..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            <SearchBtn>Search Catalog</SearchBtn>
+            <SearchBtn>Analyze Index</SearchBtn>
           </SearchBar>
         </SearchContainer>
 
         <Layout>
           <FilterPanel>
             <FilterGroup>
-              <h4>Collections</h4>
+              <h4>Asset Classes</h4>
               {["All", "Fertilizer", "Seeds"].map((cat) => (
-                <FilterOption key={cat} active={category === cat}>
-                  <input type="radio" checked={category === cat} onChange={() => setCategory(cat)} />
-                  <ActiveMark active={category === cat} />
+                <FilterOption key={cat} $active={category === cat} onClick={() => setCategory(cat)}>
+                  <CategoryIndicator $active={category === cat} />
                   {cat}
                 </FilterOption>
               ))}
             </FilterGroup>
 
             <FilterGroup>
-              <h4>Operational Status</h4>
+              <h4>Mobilization Status</h4>
               {[
-                { val: "all", label: "All Assets" },
+                { val: "all", label: "Global Inventory" },
                 { val: "inStock", label: "Ready to Dispatch" },
-                { val: "outOfStock", label: "Awaiting Restock" },
+                { val: "outOfStock", label: "Logistics Delay" },
               ].map((opt) => (
-                <FilterOption key={opt.val} active={availability === opt.val}>
-                  <input type="radio" checked={availability === opt.val} onChange={() => setAvailability(opt.val)} />
-                  <ActiveMark active={availability === opt.val} />
+                <FilterOption key={opt.val} $active={availability === opt.val} onClick={() => setAvailability(opt.val)}>
+                  <CategoryIndicator $active={availability === opt.val} />
                   {opt.label}
                 </FilterOption>
               ))}
             </FilterGroup>
 
             <FilterGroup>
-              <h4>Target application</h4>
-              {["All", "Wheat", "Cotton", "Rice", "Maize", "Sugarcane", "Citrus"].map((c) => (
-                <FilterOption key={c} active={crop === c}>
-                  <input type="radio" checked={crop === c} onChange={() => setCrop(c)} />
-                  <ActiveMark active={crop === c} />
+              <h4>Application Target</h4>
+              {["All", "Wheat", "Cotton", "Rice", "Maize", "Citrus"].map((c) => (
+                <FilterOption key={c} $active={crop === c} onClick={() => setCrop(c)}>
+                  <CategoryIndicator $active={crop === c} />
                   {c}
                 </FilterOption>
               ))}
             </FilterGroup>
 
-            <ResetFiltersBtn 
-              onClick={() => { setSearch(''); setCategory('All'); setCrop('All'); setAvailability('all'); }} 
-            >
-              Clear Preferences
-            </ResetFiltersBtn>
+            <SecondaryBtn style={{width:'100%', fontSize:'0.75rem'}} onClick={() => { setSearch(''); setCategory('All'); setCrop('All'); setAvailability('all'); }}>Reset System Filters</SecondaryBtn>
           </FilterPanel>
 
           <main>
             {loading ? (
-              <LoadingState>Retrieving institutional assets...</LoadingState>
+              <div style={{display:'flex',justifyContent:'center',padding:'150px'}}><div style={{width:'60px',height:'60px',border:'5px solid var(--border)',borderTopColor:'var(--primary)',borderRadius:'50%',animation:'spin 0.8s linear infinite'}} /></div>
             ) : products.length === 0 ? (
-              <EmptyState>
-                <div className="icon">🌾</div>
-                <h3>No Items Found</h3>
-                <p>Try adjusting your search filters to find what you're looking for.</p>
-              </EmptyState>
+              <div style={{textAlign:'center', padding:'120px 40px', background:'var(--bg-surface)', borderRadius:'var(--radius-card)', border:'1px dashed var(--border)'}}>
+                <div style={{fontSize:'5rem', marginBottom:'24px'}}>📋</div>
+                <h3>No Matching Assets</h3>
+                <p>Adjust your operational parameters to relocate inventory.</p>
+              </div>
             ) : (
               <ProductGrid>
                 {products.map((p) => (
-                  <ProductCard key={p._id}>
-                    <ProductImg onClick={() => handleDetailClick(p)} style={{cursor: 'pointer'}}>
+                  <Card key={p._id}>
+                    <ImgArea onClick={() => { setSelectedProduct(p); setShowDetailModal(true); }}>
                       {p.image?.[0] ? (
                         <img src={`http://localhost:5000${p.image[0]}`} alt={p.name} />
-                      ) : (
-                        <div style={{fontSize: '4rem'}}>{emojis[p.category] || "📦"}</div>
-                      )}
-                    </ProductImg>
+                      ) : (emojis[p.category] || "📦")}
+                    </ImgArea>
+                    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'12px'}}>
+                      <span style={{fontSize:'0.7rem', fontWeight:900, textTransform:'uppercase', color:'var(--primary)', background:'var(--bg-surface-alt)', padding:'4px 12px', borderRadius:'100px'}}>{p.category}</span>
+                      <span style={{fontSize:'0.8rem', fontWeight:800, color: p.stock > 0 ? '#4CAF50' : '#FF5252'}}>{p.stock > 0 ? `${p.stock} units` : 'RESERVE DEPLETED'}</span>
+                    </div>
+                    <Name>{p.name}</Name>
+                    <p style={{fontSize:'1rem', color:'var(--text-secondary)', opacity:0.8, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden'}}>{p.description || "Proprietary high-output formulation for professional use."}</p>
                     
-                    <CategoryBadge $category={p.category}>{p.category}</CategoryBadge>
-                    <ProductName>{p.name}</ProductName>
-                    <ProductDesc>{p.description || "Premium agricultural asset designed for maximum yield."}</ProductDesc>
-                    
-                    <ProductFooterWrapper>
-                      <PricingArea>
-                        <PriceTag>
-                          Rs. {p.price.toLocaleString()}
-                          <small>/{p.unit}</small>
-                        </PriceTag>
-                        <StockTag $inStock={p.stock > 0}>
-                          {p.stock > 0 ? `${p.stock} units` : 'SOLD OUT'}
-                        </StockTag>
-                      </PricingArea>
+                    <InfoRow>
+                      <Price>{p.price.toLocaleString()}<span>/ {p.unit}</span></Price>
+                    </InfoRow>
 
-                      <ActionButtonGroup>
-                        <ActionBtn className="secondary" onClick={() => handleDetailClick(p)}>
-                          View
-                        </ActionBtn>
-                        <ActionBtn className="secondary" onClick={() => handleAddToCart(p)} disabled={p.stock === 0}>
-                          🛒 Cart
-                        </ActionBtn>
-                        <ActionBtn className="primary" onClick={() => handleOrderClick(p)} disabled={p.stock === 0}>
-                          Buy Now
-                        </ActionBtn>
-                      </ActionButtonGroup>
-                    </ProductFooterWrapper>
-                  </ProductCard>
+                    <BtnGroup>
+                      <SecondaryBtn onClick={() => addToCart(p)} disabled={p.stock === 0}>🛒</SecondaryBtn>
+                      <PrimaryBtn onClick={() => handleOrderClick(p)} disabled={p.stock === 0}>Authorize Purchase</PrimaryBtn>
+                    </BtnGroup>
+                  </Card>
                 ))}
               </ProductGrid>
             )}
           </main>
         </Layout>
-      </PageContent>
+      </Container>
 
       {showOrderModal && selectedProduct && (
         <OrderModal
@@ -592,7 +413,7 @@ const Products = () => {
           onBuy={() => { setShowDetailModal(false); handleOrderClick(selectedProduct); }}
         />
       )}
-    </Container>
+    </PageWrap>
   );
 };
 

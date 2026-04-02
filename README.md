@@ -1,48 +1,58 @@
-# KisanStore - Fertilizer & Seed Management System
+# 🌾 Agrotek Elite: Institutional Agricultural ERP
 
-A high-performance MERN (MongoDB, Express, React, Node.js) stack application designed for Fertilizer Dealers and Farmers.
+**Agrotek Elite** is Pakistan's premier operational hub for high-yield agricultural management. This industrial-grade ERP system is engineered to provide elite governance, precision soil diagnostics, and institutional-standard supply chain logistics for modern agricultural stakeholders.
 
-## 🚀 Key Features
+## 🏛️ Operational Governance
 
-*   **Farmer Portal**: Catalog browsing, secure purchase lifecycle, and soil report management.
-*   **Admin Command Center**: Real-time sales analytics, inventory CRUD, and order fulfillment.
-*   **Audit Subsystem**: Comprehensive functional and visual verification suite using Playwright.
-*   **Security**: Rate-limiting, Helmet headers, and HTTP-only cookie-based authentication.
+The platform adheres to a strict institutional framework, ensuring financial integrity and operational transparency across all stakeholder tiers.
 
-## 📁 Repository Structure
+### Key Capabilities
+- **Strategic Inventory Logic**: Real-time management of high-yield assets and nutrient indices.
+- **Nexus Logistics**: Zero-latency procurement and direct dispatch protocols.
+- **Institutional Accounting**: Comprehensive settlement tracking, expense management, and POS terminal integration.
+- **Soil Intelligence Hub**: Precision diagnostics and yield optimization blueprints.
 
-*   `/Frontend`: React + Vite application (UI/UX).
-*   `/Backend`: Node.js + Express API (Business logic).
-*   `/screenshots_admin`: Evidence of the latest administrative audit.
-*   `Backend/*_v2.js`: Finalized verification scripts for the production-ready state.
+---
 
-## 🛠️ Getting Started
+### 🚀 Rapid Deployment Protocol
 
-### 1. Prerequisites
-*   Node.js (v18+)
-*   MongoDB running locally on port 27017
+#### 1. Database Initialization
+Ensure MongoDB is active on the default port. Run the institutional seed script to establish the baseline:
+```bash
+node Backend/seeder.js
+```
 
-### 2. Setup Backend
+#### 2. Service Mobilization (Backend)
 ```bash
 cd Backend
 npm install
-# Ensure .env is populated with MONGO_URI and JWT_SECRET
-npm run dev
+npm start
 ```
 
-### 3. Setup Frontend
+#### 3. Frontend Command Center
 ```bash
 cd Frontend
 npm install
 npm run dev
 ```
+*Access the terminal via `http://localhost:3000`.*
 
-### 4. Run Audits
+---
+
+### 🛡️ Identity Standards (Development Vitals)
+
+- **Admin Strategic Access**: `admin@kisanstore.pk` / `admin123`
+- **Stakeholder Registry Baseline**: `ali@gmail.com` / `farmer123`
+
+---
+
+### 🧪 Automated Audit Protocol
+The system undergoes continuous functional verification via a 12-test Playwright suite. To maintain institutional integrity, ensure 100% pass rate before committing changes to the main registry.
+
 ```bash
-cd Backend
-node final_integrity_check_v2.js
-node admin_visual_audit_v2.js
+npx playwright test --workers=1
 ```
 
-## 📜 License
-ISC License
+---
+
+*Agrotek Elite — Engineering the future of Pakistani agriculture with institutional trust.*

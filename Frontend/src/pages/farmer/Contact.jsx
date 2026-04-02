@@ -1,62 +1,42 @@
 import React from 'react';
 import styled, { keyframes } from 'styled-components';
-
-const fadeIn = keyframes`from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); }`;
+import { Button, GlassCard, SectionTitle } from '../../styles/StyledComponents';
 
 // ===== STYLED COMPONENTS =====
-const PageWrap = styled.div`
-  min-height: calc(100vh - 120px);
-  background: var(--bg-cream);
-  padding: 120px 24px;
+const PageContainer = styled.div`
+  padding: var(--spacing-xl);
+  animation: entrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  background: var(--bg-app);
+  min-height: 100vh;
 `;
 
-const Container = styled.div`
-  max-width: 1200px;
+const ContentWrapper = styled.div`
+  max-width: 1400px;
   margin: 0 auto;
-  animation: ${fadeIn} 1s ease-out;
 `;
 
-const SectionTitle = styled.h1`
-  font-size: 4rem;
-  color: var(--primary);
-  text-align: left;
-  margin-bottom: 24px;
-  @media (max-width: 768px) { font-size: 2.8rem; }
-`;
-
-const Subtitle = styled.p`
-  text-align: left;
-  color: var(--text-muted);
-  max-width: 700px;
-  margin-bottom: 80px;
-  font-size: 1.2rem;
-  line-height: 1.7;
-  font-weight: 500;
+const TopHeader = styled.div`
+  margin-bottom: var(--spacing-xxl);
+  max-width: 800px;
 `;
 
 const Grid = styled.div`
   display: grid;
-  grid-template-columns: 1fr 1.4fr;
-  gap: 60px;
-  @media (max-width: 1000px) { grid-template-columns: 1fr; }
+  grid-template-columns: 1fr 1.5fr;
+  gap: var(--spacing-xxl);
+  @media (max-width: 1100px) { grid-template-columns: 1fr; }
 `;
 
-const InfoCard = styled.div`
-  background: var(--primary);
-  color: var(--white);
-  padding: 64px;
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-premium);
+const OperationalCore = styled(GlassCard)`
+  padding: 60px;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  background: var(--primary);
+  color: var(--text-inverse);
+  border: none;
 
-  h3 {
-    font-size: 2.2rem;
-    color: var(--accent);
-    margin-bottom: 48px;
-    letter-spacing: -0.02em;
-  }
+  h3 { font-size: 2.5rem; color: var(--accent); margin-bottom: 48px; letter-spacing: -0.02em; }
 `;
 
 const InfoItem = styled.div`
@@ -64,44 +44,33 @@ const InfoItem = styled.div`
   gap: 24px;
   margin-bottom: 40px;
 
-  .icon {
-    font-size: 1.8rem;
-    height: 60px;
-    width: 60px;
-    background: rgba(255,255,255,0.05);
+  .icon-box {
+    width: 64px; height: 64px;
+    background: rgba(255,255,255,0.08);
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 16px;
+    border-radius: 20px;
     border: 1px solid rgba(255,255,255,0.1);
+    font-size: 1.8rem;
+    box-shadow: var(--shadow-subtle);
   }
 
-  h4 {
-    font-weight: 800;
-    color: var(--white);
-    margin-bottom: 8px;
-    font-size: 1.1rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  p {
-    font-size: 1rem;
-    color: rgba(255,255,255,0.7);
-    line-height: 1.6;
-    font-weight: 500;
+  .text {
+    h4 { font-size: 0.8rem; font-weight: 900; color: var(--text-inverse); text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 8px; opacity: 0.6; }
+    p { font-size: 1.1rem; font-weight: 700; color: var(--text-inverse); line-height: 1.6; }
   }
 `;
 
 const ContactForm = styled.form`
-  background: var(--white);
+  background: var(--bg-surface);
   padding: 80px;
   border-radius: var(--radius-card);
+  border: 1px solid var(--border);
   box-shadow: var(--shadow-premium);
   display: flex;
   flex-direction: column;
   gap: 32px;
-  border: 1px solid var(--border-soft);
   @media (max-width: 600px) { padding: 40px; }
 `;
 
@@ -110,120 +79,89 @@ const InputGroup = styled.div`
   flex-direction: column;
   gap: 12px;
 
-  label {
-    font-size: 0.75rem;
-    font-weight: 800;
-    color: var(--primary);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-  }
-
+  label { font-size: 0.75rem; font-weight: 900; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.12em; }
   input, textarea {
-    padding: 20px 24px;
-    border: 1px solid var(--bg-cream);
-    background: var(--bg-cream);
-    border-radius: var(--radius-sm);
+    padding: 18px 24px;
+    background: var(--bg-surface-alt);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
     font-size: 1rem;
-    font-weight: 600;
-    color: var(--text-charcoal);
-    transition: var(--transition);
+    color: var(--text-primary);
+    transition: var(--transition-smooth);
 
-    &:focus {
-      outline: none;
-      border-color: var(--primary);
-      background: var(--white);
-    }
-    &::placeholder { color: var(--text-muted); opacity: 0.5; }
+    &:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
+    &::placeholder { color: var(--text-secondary); opacity: 0.4; }
   }
 
-  textarea {
-    min-height: 180px;
-    resize: vertical;
-  }
-`;
-
-const SubmitBtn = styled.button`
-  background: var(--text-charcoal);
-  color: var(--white);
-  padding: 24px;
-  border: none;
-  border-radius: var(--radius-pill);
-  font-weight: 800;
-  font-size: 1rem;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  cursor: pointer;
-  transition: var(--transition);
-  margin-top: 16px;
-
-  &:hover {
-    background: var(--primary);
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-premium);
-  }
+  textarea { min-height: 200px; resize: vertical; }
 `;
 
 const Contact = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
-    alert('Strategic Brief Received. Our agricultural operations team will contact you shortly.');
+    alert('Communication Authorization Established. Sector Logistics will contact you momentarily.');
   };
 
   return (
-    <PageWrap>
-      <Container>
-        <SectionTitle>Global Operations Support</SectionTitle>
-        <Subtitle>
-          For complex procurement inquiries or localized expert analysis, connect with our institutional support division. 
-          Bridging the gap between heritage farming and modern logistics.
-        </Subtitle>
+    <PageContainer>
+      <ContentWrapper>
+        <TopHeader>
+          <SectionTitle>Operational Support <small>INSTITUTIONAL CRISIS & LOGISTICS DISPATCH</small></SectionTitle>
+          <p style={{ marginTop: '24px', fontSize: '1.2rem', color: 'var(--text-secondary)', fontWeight: 600, lineHeight: 1.6 }}>
+            For complex asset procurement or localized strategic analysis, establish a direct link with our institutional support division.
+          </p>
+        </TopHeader>
 
         <Grid>
-          <InfoCard>
-            <h3>Operational Core</h3>
+          <OperationalCore>
+            <h3>Global Core HQ</h3>
             <InfoItem>
-              <span className="icon">📍</span>
-              <div>
-                <h4>General Headquarters</h4>
-                <p>Agrotek Plaza, Sector 7-C<br />Institutional District, Lahore, PK</p>
+              <div className="icon-box">📍</div>
+              <div className="text">
+                <h4>Consortium Headquarters</h4>
+                <p>Agrotek Elite Plaza, Sector 7-C<br />Institutional District, Central Hub</p>
               </div>
             </InfoItem>
             <InfoItem>
-              <span className="icon">📞</span>
-              <div>
-                <h4>24/7 Logistics Hot-line</h4>
-                <p>+92 (300) AGROTEK<br />Active Monitoring Sequence</p>
+              <div className="icon-box">📞</div>
+              <div className="text">
+                <h4>Operational Hotline</h4>
+                <p>+92 (300) AGROTEK ELITE<br />Active Monitoring Stream</p>
               </div>
             </InfoItem>
             <InfoItem>
-              <span className="icon">✉️</span>
-              <div>
-                <h4>Digital Correspondence</h4>
-                <p>ops@kisanstore.pk<br />intelligence@kisanstore.pk</p>
+              <div className="icon-box">✉️</div>
+              <div className="text">
+                <h4>Secure Protocol</h4>
+                <p>ops@agrotek-elite.com<br />intelligence@agrotek-elite.com</p>
               </div>
             </InfoItem>
-          </InfoCard>
+          </OperationalCore>
 
           <ContactForm onSubmit={handleSubmit}>
             <InputGroup>
-              <label>Full Name / Entity</label>
-              <input type="text" placeholder="Authorized Personnel" required />
+              <label>Personnel / Entity Identity</label>
+              <input type="text" placeholder="Authorized Stakeholder Name" required />
             </InputGroup>
             <InputGroup>
-              <label>Secure Email</label>
-              <input type="email" placeholder="ops@domain.pk" required />
+              <label>Tactical Correspondence (Email)</label>
+              <input type="email" placeholder="stakeholder@agrotek-elite.com" required />
             </InputGroup>
             <InputGroup>
-              <label>Operational Query</label>
-              <textarea placeholder="Specify asset requirements or technical challenges..." required />
+              <label>Logistics Requirements / Query</label>
+              <textarea placeholder="Specify strategic asset needs or technical field challenges..." required />
             </InputGroup>
-            <SubmitBtn type="submit">Authorize Communication</SubmitBtn>
+            <Button type="submit" block amber>AUTHORIZE COMMUNICATION PROTOCOL</Button>
+            <p style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 800, opacity: 0.6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              ⚠️ Digital integrity report generated upon submission.
+            </p>
           </ContactForm>
         </Grid>
-      </Container>
-    </PageWrap>
+      </ContentWrapper>
+    </PageContainer>
   );
 };
 
 export default Contact;
-

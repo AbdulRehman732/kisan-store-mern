@@ -24,6 +24,10 @@ exports.protect = async (req, res, next) => {
       return res.status(401).json({ message: 'Account is locked, please contact admin' });
     }
 
+    if (user.isActive === false) {
+      return res.status(403).json({ message: 'Account is suspended, please contact support' });
+    }
+
     req.user = user;
     next();
   } catch (err) {

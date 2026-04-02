@@ -1,4 +1,7 @@
 const Order = require('../models/Order');
+const OrderService = require('../services/OrderService');
+const MailService = require('../services/MailService');
+const APIFeatures = require('../utils/apiFeatures');
 const mongoose = require('mongoose');
 
 exports.createOrder = async (req, res) => {
@@ -10,7 +13,6 @@ exports.createOrder = async (req, res) => {
       return res.status(400).json({ message: 'Pickup date is required' });
     if (!farmerPhone)
       return res.status(400).json({ message: 'Phone number is required' });
-
     const order = await Order.create({
       farmer: req.user._id,
       items,
@@ -18,6 +20,16 @@ exports.createOrder = async (req, res) => {
       notes,
       farmerPhone
     });
+
+    // Notify farmer via institutional email (Mock)
+    await MailService.sendOrderConfirmation(req.user, order);
+
+    // Real-time notification
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('new_order', { orderId: order._id, farmerName: req.user.first_name });
+    }
+
     res.status(201).json({ order });
   } catch (err) {
     console.error(err);
@@ -38,11 +50,57 @@ exports.getMyOrders = async (req, res) => {
 
 exports.getAllOrders = async (req, res) => {
   try {
-    const orders = await Order.find()
-      .populate('farmer', 'first_name last_name email phone')
-      .populate('items.product', 'name price unit')
-      .sort({ createdAt: -1 });
-    res.json({ orders });
+    const features = new APIFeatures(
+      Order.find()
+        .populate('farmer', 'first_name last_name email phone address city')
+        .populate('items.product', 'name price category unit'), 
+      req.query
+    )
+      .search(['status', 'farmerPhone', 'notes'])
+      .filter()
+      .sort()
+      .paginate();
+
+    const orders = await features.query;
+
+    const totalCountFeatures = new APIFeatures(Order.find(), req.query)
+      .search(['status', 'farmerPhone', 'notes'])
+      .filter();
+    const totalRecords = await totalCountFeatures.query.countDocuments();
+    const limit = req.query.limit * 1 || 10;
+    const totalPages = Math.ceil(totalRecords / limit);
+
+    res.json({ 
+      orders,
+      pagination: {
+        totalRecords,
+        totalPages,
+        currentPage: req.query.page * 1 || 1,
+        limit
+      }
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+exports.getOrderById = async (req, res) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id))
+      return res.status(400).json({ message: 'Invalid order ID' });
+
+    const order = await Order.findById(req.params.id)
+      .populate('farmer', 'first_name last_name email phone address city')
+      .populate('items.product', 'name price category unit');
+
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+    
+    if (order.farmer._id.toString() !== req.user._id.toString() && req.user.role !== 'admin' && req.user.role !== 'manager') {
+      return res.status(403).json({ message: 'Not authorized to view this invoice' });
+    }
+
+    res.json({ order });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }
@@ -50,41 +108,44 @@ exports.getAllOrders = async (req, res) => {
 
 exports.updateOrderStatus = async (req, res) => {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id))
-      return res.status(400).json({ message: 'Invalid order ID' });
-
     const { status } = req.body;
-    if (!['Pending', 'Completed', 'Cancelled'].includes(status))
-      return res.status(400).json({ message: 'Invalid status' });
+    const order = await OrderService.updateStatus(req.params.id, status, req.user._id);
 
-    const order = await Order.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true }
-    );
-    if (!order) return res.status(404).json({ message: 'Order not found' });
-    res.json({ order });
+    // Fetch full order for notification
+    const fullOrder = await Order.findById(order._id).populate('farmer', 'first_name last_name email');
+    
+    if (fullOrder && fullOrder.farmer && fullOrder.farmer.email) {
+      if (status === 'Completed' || status === 'Cancelled') {
+        const subject = status === 'Completed' ? '📦 Procurement Ready: Order Completed' : '🛑 Procurement Alert: Order Cancelled';
+        const html = `<h2>Order Status Update: ${status}</h2><p>Your order #${order._id.toString().slice(-8).toUpperCase()} has been ${status.toLowerCase()}.</p>`;
+        await MailService.sendMail({ to: fullOrder.farmer.email, subject, html });
+      }
+    }
+
+    // Real-time notification
+    const io = req.app.get('io');
+    if (io) {
+      io.to(fullOrder.farmer._id.toString()).emit('order_update', { 
+        orderId: order._id, 
+        status: status,
+        message: `Your procurement status has been updated to ${status}.` 
+      });
+      io.emit('admin_order_update', { orderId: order._id, status });
+    }
+
+    res.json({ order: fullOrder });
   } catch (err) {
-    res.status(500).json({ message: 'Server error' });
+    console.error(err);
+    res.status(400).json({ message: err.message || 'Status update failed' });
   }
 };
 
 exports.cancelOrder = async (req, res) => {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id))
-      return res.status(400).json({ message: 'Invalid order ID' });
-
-    const order = await Order.findById(req.params.id);
-    if (!order) return res.status(404).json({ message: 'Order not found' });
-    if (order.farmer.toString() !== req.user._id.toString())
-      return res.status(403).json({ message: 'Not authorized' });
-    if (order.status !== 'Pending')
-      return res.status(400).json({ message: 'Only pending orders can be cancelled' });
-
-    order.status = 'Cancelled';
-    await order.save();
+    const order = await OrderService.updateStatus(req.params.id, 'Cancelled', req.user._id);
     res.json({ order });
   } catch (err) {
-    res.status(500).json({ message: 'Server error' });
+    console.error(err);
+    res.status(400).json({ message: err.message || 'Cancellation failed' });
   }
 };

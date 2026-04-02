@@ -2,282 +2,130 @@ import React, { useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import api from '../api';
 import { useAuth } from '../context/AuthContext';
-
-// ===== ANIMATIONS =====
-const fadeIn = keyframes`
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
-`;
+import { Button, GlassCard } from '../styles/StyledComponents';
 
 // ===== STYLED COMPONENTS =====
 const Overlay = styled.div`
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.55);
-  z-index: 2000;
+  background: rgba(13, 15, 12, 0.85);
+  backdrop-filter: blur(40px);
+  z-index: 5000;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 40px;
+  animation: entrance 0.4s ease forwards;
 `;
 
-const Modal = styled.div`
-  background: white;
-  border-radius: 20px;
-  padding: 28px;
+const ModalPanel = styled.div`
+  background: var(--bg-surface);
+  border-radius: var(--radius-card);
+  padding: 50px;
   width: 100%;
-  max-width: 520px;
+  max-width: 600px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-  animation: ${fadeIn} 0.25s ease;
-`;
-
-const ModalHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 22px;
-`;
-
-const ModalTitle = styled.h3`
-  font-family: 'Amiri', serif;
-  font-size: 1.3rem;
-  color: #1a5c2e;
-  font-weight: 700;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-premium);
+  position: relative;
 `;
 
 const CloseBtn = styled.button`
-  background: #f5f5f5;
-  border: none;
-  width: 34px;
-  height: 34px;
+  position: absolute;
+  top: 30px;
+  right: 30px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  cursor: pointer;
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.25s ease;
-  color: #616161;
-
-  &:hover { background: #eeeeee; color: #212121; }
+  background: var(--bg-surface-alt);
+  color: var(--text-primary);
+  font-size: 1.2rem;
+  border: 1px solid var(--border);
+  transition: var(--transition-smooth);
+  &:hover { transform: rotate(90deg); background: var(--accent); color: var(--text-inverse); }
 `;
 
-const ProductInfo = styled.div`
-  background: #e8f5ed;
-  border-radius: 12px;
-  padding: 14px 16px;
-  margin-bottom: 20px;
+const ProductHeader = styled.div`
+  background: var(--bg-surface-alt);
+  border-radius: 24px;
+  padding: 24px;
+  margin-bottom: 32px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-`;
-
-const ProductName = styled.div`
-  font-weight: 700;
-  color: #1a5c2e;
-  font-size: 0.95rem;
-`;
-
-const ProductPrice = styled.div`
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: #1a5c2e;
-
-  small {
-    font-size: 0.75rem;
-    color: #9e9e9e;
-    font-weight: 500;
-  }
+  border: 1px solid var(--border);
+  
+  .name { font-weight: 900; color: var(--primary); font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .price { font-size: 1.2rem; font-weight: 900; color: var(--text-primary); span { font-size: 0.8rem; color: var(--text-secondary); font-weight: 500; } }
 `;
 
 const FormGroup = styled.div`
-  margin-bottom: 18px;
+  margin-bottom: 24px;
 
   label {
     display: block;
-    font-size: 0.87rem;
-    font-weight: 700;
-    color: #616161;
-    margin-bottom: 7px;
+    font-size: 0.75rem;
+    font-weight: 900;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 10px;
   }
 
-  input, textarea, select {
+  input, select, textarea {
     width: 100%;
-    padding: 11px 14px;
-    border: 1.5px solid #e0e0e0;
-    border-radius: 10px;
-    font-family: 'Nunito', sans-serif;
-    font-size: 0.92rem;
-    color: #212121;
-    background: white;
-    transition: all 0.25s ease;
-
-    &:focus {
-      outline: none;
-      border-color: #2d7a47;
-      box-shadow: 0 0 0 3px rgba(45,122,71,0.1);
-    }
-  }
-
-  textarea {
-    resize: vertical;
-    min-height: 80px;
-  }
-`;
-
-const ItemRow = styled.div`
-  display: flex;
-  gap: 10px;
-  align-items: flex-end;
-  margin-bottom: 10px;
-`;
-
-const ItemField = styled.div`
-  flex: ${p => p.flex || 1};
-
-  label {
-    display: block;
-    font-size: 0.82rem;
-    font-weight: 700;
-    color: #9e9e9e;
-    margin-bottom: 5px;
-  }
-
-  input {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1.5px solid #e0e0e0;
-    border-radius: 8px;
-    font-family: 'Nunito', sans-serif;
-    font-size: 0.88rem;
-    transition: all 0.25s ease;
-
-    &:focus {
-      outline: none;
-      border-color: #2d7a47;
-      box-shadow: 0 0 0 3px rgba(45,122,71,0.1);
-    }
-  }
-`;
-
-const RemoveItemBtn = styled.button`
-  background: #ffebee;
-  color: #c62828;
-  border: none;
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: all 0.25s ease;
-  margin-bottom: 1px;
-
-  &:hover { background: #e53935; color: white; }
-`;
-
-const AddItemBtn = styled.button`
-  background: none;
-  border: 1.5px dashed #2d7a47;
-  color: #2d7a47;
-  padding: 8px 14px;
-  border-radius: 8px;
-  font-family: 'Nunito', sans-serif;
-  font-size: 0.85rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.25s ease;
-  margin-top: 4px;
-
-  &:hover { background: #e8f5e9; }
-`;
-
-const OrderSummary = styled.div`
-  background: #fafafa;
-  border-radius: 10px;
-  padding: 14px 16px;
-  margin-bottom: 18px;
-  border: 1px solid #eeeeee;
-`;
-
-const SummaryRow = styled.div`
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.88rem;
-  color: #616161;
-  padding: 3px 0;
-
-  &.total {
-    font-weight: 800;
+    padding: 16px 20px;
+    background: var(--bg-surface-alt);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-family: 'Inter', sans-serif;
     font-size: 1rem;
-    color: #1a5c2e;
-    border-top: 1px solid #eeeeee;
-    margin-top: 6px;
-    padding-top: 8px;
+    color: var(--text-primary);
+    font-weight: 700;
+    transition: var(--transition-smooth);
+    &:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
+    &::placeholder { color: var(--text-secondary); opacity: 0.4; }
   }
+  
+  textarea { min-height: 100px; resize: vertical; }
 `;
 
-const Alert = styled.div`
-  padding: 12px 16px;
-  border-radius: 10px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  margin-bottom: 18px;
+const ItemFlex = styled.div`
   display: flex;
-  align-items: center;
-  gap: 8px;
-  background: ${p => p.success ? '#e8f5e9' : '#ffebee'};
-  color: ${p => p.success ? '#2e7d32' : '#c62828'};
-  border: 1px solid ${p => p.success ? '#a5d6a7' : '#ef9a9a'};
+  gap: 16px;
+  align-items: flex-end;
+  margin-bottom: 16px;
+  
+  .field-lg { flex: 2; }
+  .field-sm { flex: 1; }
 `;
 
-const BtnRow = styled.div`
-  display: flex;
-  gap: 10px;
-  margin-top: 6px;
+const SummaryPanel = styled.div`
+  background: var(--bg-surface-alt);
+  border-radius: 20px;
+  padding: 24px;
+  margin: 32px 0;
+  border: 1px solid var(--border);
+  
+  .row { display: flex; justify-content: space-between; font-size: 0.9rem; color: var(--text-secondary); padding: 4px 0; font-weight: 700; }
+  .total { font-weight: 900; font-size: 1.2rem; color: var(--text-primary); border-top: 1px solid var(--border); margin-top: 12px; padding-top: 16px; }
 `;
 
-const CancelBtn = styled.button`
-  flex: 1;
-  padding: 12px;
-  background: #f5f5f5;
-  color: #616161;
-  border: none;
-  border-radius: 10px;
-  font-family: 'Nunito', sans-serif;
-  font-weight: 700;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: all 0.25s ease;
-
-  &:hover { background: #eeeeee; }
+const FeedbackMsg = styled.div`
+  padding: 18px 24px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 900;
+  margin-bottom: 24px;
+  border: 1px solid currentColor;
+  background: ${p => p.$success ? 'rgba(76, 175, 80, 0.1)' : 'rgba(212, 106, 79, 0.1)'};
+  color: ${p => p.$success ? '#4CAF50' : '#FF5252'};
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: center;
 `;
 
-const SubmitBtn = styled.button`
-  flex: 2;
-  padding: 12px;
-  background: #2d7a47;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-family: 'Nunito', sans-serif;
-  font-weight: 700;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: all 0.25s ease;
-
-  &:hover { background: #1a5c2e; }
-  &:disabled { opacity: 0.6; cursor: not-allowed; }
-`;
-
-// ===== COMPONENT =====
 const OrderModal = ({ product, onClose, onSuccess }) => {
   const { user } = useAuth();
   const [items, setItems] = useState([{ product: product._id, quantity: 1, price: product.price }]);
@@ -296,14 +144,11 @@ const OrderModal = ({ product, onClose, onSuccess }) => {
     setItems(updated);
   };
 
-  const addItem = () => setItems([...items, { product: product._id, quantity: 1, price: product.price }]);
-  const removeItem = i => { if (items.length > 1) setItems(items.filter((_, idx) => idx !== i)); };
-
   const handleSubmit = async e => {
     e.preventDefault();
     setError('');
-    if (!pickupDate) return setError('Please select a pickup date');
-    if (!farmerPhone) return setError('Please enter your phone number');
+    if (!pickupDate) return setError('PROTOCOL ERROR: PICKUP DATE REQUIRED');
+    if (!farmerPhone) return setError('PROTOCOL ERROR: CONTACT IDENTITY REQUIRED');
 
     setLoading(true);
     try {
@@ -311,7 +156,7 @@ const OrderModal = ({ product, onClose, onSuccess }) => {
       setSuccess(true);
       setTimeout(() => onSuccess(), 1500);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to place order');
+      setError(err.response?.data?.message || 'CRITICAL FAILURE: ORDER COMMIT FAILED');
     } finally {
       setLoading(false);
     }
@@ -323,37 +168,34 @@ const OrderModal = ({ product, onClose, onSuccess }) => {
 
   return (
     <Overlay onClick={e => e.target === e.currentTarget && onClose()}>
-      <Modal>
-        <ModalHeader>
-          <ModalTitle>🛒 Place Order</ModalTitle>
-          <CloseBtn onClick={onClose}>✕</CloseBtn>
-        </ModalHeader>
+      <ModalPanel>
+        <div style={{ marginBottom: '32px' }}>
+          <h3 style={{ fontSize: '2rem', color: 'var(--text-primary)', letterSpacing: '-0.02em', marginBottom: '8px' }}>Asset Procurement</h3>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Institutional Fulfillment Protocol</p>
+        </div>
+        <CloseBtn onClick={onClose}>✕</CloseBtn>
 
-        <ProductInfo>
-          <ProductName>🌱 {product.name}</ProductName>
-          <ProductPrice>
-            Rs. {product.price.toLocaleString()}
-            <small> / {product.unit}</small>
-          </ProductPrice>
-        </ProductInfo>
+        <ProductHeader>
+          <div className="name">📦 {product.name}</div>
+          <div className="price">Rs. {product.price.toLocaleString()} <span>/ {product.unit}</span></div>
+        </ProductHeader>
 
         {success ? (
-          <Alert success>✅ Order placed successfully! Redirecting...</Alert>
+          <FeedbackMsg $success>✅ COMMIT SUCCESS: PROTOCOL INITIALIZED. REDIRECTING...</FeedbackMsg>
         ) : (
           <form onSubmit={handleSubmit}>
-            {error && <Alert>⚠️ {error}</Alert>}
+            {error && <FeedbackMsg>⚠️ {error}</FeedbackMsg>}
 
-            {/* Items */}
             <FormGroup>
-              <label>Order Items</label>
+              <label>Asset Mobilization Details</label>
               {items.map((item, i) => (
-                <ItemRow key={i}>
-                  <ItemField flex={2}>
-                    <label>Product</label>
-                    <input value={product.name} disabled style={{ background: '#fafafa', color: '#9e9e9e' }} />
-                  </ItemField>
-                  <ItemField>
-                    <label>Qty</label>
+                <ItemFlex key={i}>
+                  <div className="field-lg">
+                    <label>Designated Asset</label>
+                    <input value={product.name} disabled style={{ opacity: 0.6 }} />
+                  </div>
+                  <div className="field-sm">
+                    <label>Quantity</label>
                     <input
                       type="number"
                       min="1"
@@ -361,73 +203,68 @@ const OrderModal = ({ product, onClose, onSuccess }) => {
                       value={item.quantity}
                       onChange={e => updateItem(i, 'quantity', e.target.value)}
                     />
-                  </ItemField>
-                  <ItemField>
-                    <label>Price</label>
-                    <input value={`Rs.${item.price.toLocaleString()}`} disabled style={{ background: '#fafafa', color: '#9e9e9e' }} />
-                  </ItemField>
-                  {items.length > 1 && (
-                    <RemoveItemBtn type="button" onClick={() => removeItem(i)}>✕</RemoveItemBtn>
-                  )}
-                </ItemRow>
+                  </div>
+                </ItemFlex>
               ))}
-              <AddItemBtn type="button" onClick={addItem}>+ Add More Items</AddItemBtn>
             </FormGroup>
 
-            {/* Order Summary */}
-            <OrderSummary>
+            <SummaryPanel>
               {items.map((item, i) => (
-                <SummaryRow key={i}>
+                <div className="row" key={i}>
                   <span>{product.name} × {item.quantity}</span>
                   <span>Rs. {(item.quantity * item.price).toLocaleString()}</span>
-                </SummaryRow>
+                </div>
               ))}
-              <SummaryRow className="total">
-                <span>Total Amount</span>
+              <div className="row total">
+                <span>Aggregate Fiscal Maginitude</span>
                 <span>Rs. {totalAmount.toLocaleString()}</span>
-              </SummaryRow>
-            </OrderSummary>
+              </div>
+            </SummaryPanel>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              <FormGroup>
+                <label>Designated Pickup Date</label>
+                <input
+                  type="date"
+                  value={pickupDate}
+                  min={minDate}
+                  onChange={e => setPickupDate(e.target.value)}
+                  required
+                />
+              </FormGroup>
+              <FormGroup>
+                <label>Verification Hotline</label>
+                <input
+                  type="tel"
+                  value={farmerPhone}
+                  onChange={e => setFarmerPhone(e.target.value)}
+                  placeholder="0300-0000000"
+                  required
+                />
+              </FormGroup>
+            </div>
 
             <FormGroup>
-              <label>Pickup Date</label>
-              <input
-                type="date"
-                value={pickupDate}
-                min={minDate}
-                onChange={e => setPickupDate(e.target.value)}
-                required
-              />
-            </FormGroup>
-
-            <FormGroup>
-              <label>Contact Phone</label>
-              <input
-                type="tel"
-                value={farmerPhone}
-                onChange={e => setFarmerPhone(e.target.value)}
-                placeholder="0300-1234567"
-                required
-              />
-            </FormGroup>
-
-            <FormGroup>
-              <label>Notes <span style={{ color: '#9e9e9e', fontWeight: 400 }}>(optional)</span></label>
+              <label>Operational Metadata (Notes)</label>
               <textarea
                 value={notes}
                 onChange={e => setNotes(e.target.value)}
-                placeholder="Any special instructions or requests..."
+                placeholder="Specify tactical deployment instructions..."
               />
             </FormGroup>
 
-            <BtnRow>
-              <CancelBtn type="button" onClick={onClose}>Cancel</CancelBtn>
-              <SubmitBtn type="submit" disabled={loading}>
-                {loading ? 'Placing Order...' : '✅ Confirm Order'}
-              </SubmitBtn>
-            </BtnRow>
+            <div style={{ display: 'flex', gap: '16px' }}>
+              <Button type="button" outline style={{ flex: 1 }} onClick={onClose}>ABORT</Button>
+              <Button type="submit" disabled={loading} primary style={{ flex: 2 }}>
+                {loading ? 'COMMITTING...' : 'AUTHORIZE PROCUREMENT'}
+              </Button>
+            </div>
+            <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 800, opacity: 0.5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              ⚠️ Digital authorization logs are permanent.
+            </p>
           </form>
         )}
-      </Modal>
+      </ModalPanel>
     </Overlay>
   );
 };

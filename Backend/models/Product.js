@@ -4,11 +4,12 @@ const ProductSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
     price: { type: Number, required: true, min: 0 },
+    taxAmount: { type: Number, default: 0, min: 0 },
     stock: { type: Number, required: true, min: 0, default: 0 },
     brand: { type: String, trim: true },
     isAvailable: { type: Boolean, default: true },
     description: { type: String, trim: true },
-    category: { type: String, enum: ['Fertilizer', 'Seeds'], required: true },
+    category: { type: String, required: true },
     crops: { type: [String], default: [] },
     unit: { type: String, default: 'per bag' },
     image: { type: [String], default: [] },

@@ -1,319 +1,334 @@
-import React, { useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
+import ThemeToggle from "./ThemeToggle";
 
 // ===== STYLED COMPONENTS =====
 const Nav = styled.nav`
   position: sticky;
   top: 0;
-  z-index: 1000;
-  padding: 15px 0;
-  background: rgba(250, 249, 246, 0.8);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border-soft);
+  z-index: 2000;
+  padding: 12px 24px;
+  background: transparent;
+  pointer-events: none;
 `;
 
 const NavContainer = styled.div`
-  max-width: 1400px;
+  max-width: 1440px;
   margin: 0 auto;
-  background: var(--white);
-  height: 90px;
+  background: var(--glass-heavy);
+  backdrop-filter: blur(40px);
+  height: 80px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-right: 40px;
+  padding: 0 32px;
   border-radius: var(--radius-pill);
-  box-shadow: var(--shadow-card);
-  overflow: hidden;
-  border: 1px solid var(--border-soft);
-  transition: var(--transition);
-
-  &:hover {
-    box-shadow: var(--shadow-premium);
-  }
-
-  @media (max-width: 1200px) {
-    margin: 0 20px;
-  }
+  box-shadow: var(--shadow-premium);
+  border: 1px solid var(--border);
+  pointer-events: auto;
+  transition: var(--transition-smooth);
+  
+  &:hover { border-color: var(--accent); box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
 `;
 
 const Brand = styled(NavLink)`
-  background: var(--gradient-gold);
-  height: 100%;
   display: flex;
   align-items: center;
-  padding: 0 50px;
-  color: var(--primary);
-  font-family: 'Fraunces', serif;
-  font-size: 2.2rem;
-  font-weight: 900;
+  gap: 12px;
   text-decoration: none;
-  transition: var(--transition);
-  letter-spacing: -0.02em;
+  font-family: 'Fraunces', serif;
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--text-primary);
+  letter-spacing: -0.03em;
+  transition: var(--transition-smooth);
 
-  &:hover {
-    opacity: 0.9;
-  }
-
-  span {
-    font-weight: 400;
-    margin-left: 2px;
-    opacity: 0.8;
-  }
+  span { font-weight: 400; opacity: 0.6; }
+  .logo-icon { font-size: 2.2rem; filter: drop-shadow(0 4px 10px rgba(76, 175, 80, 0.3)); }
+  
+  &:hover { transform: scale(1.02); }
 `;
 
-const NavLinks = styled.ul`
+const NavList = styled.ul`
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   list-style: none;
-
-  @media (max-width: 1024px) {
-    display: none;
-  }
+  @media (max-width: 1100px) { display: none; }
 `;
 
 const NavItem = styled(NavLink)`
-  color: var(--text-charcoal);
-  padding: 12px 24px;
-  font-size: 0.9rem;
-  font-weight: 800;
+  position: relative;
+  padding: 10px 20px;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
+  text-decoration: none;
   border-radius: var(--radius-pill);
+  transition: var(--transition-smooth);
 
   &:hover, &.active {
     color: var(--primary);
-    background: var(--bg-cream);
+    background: var(--bg-surface-alt);
+  }
+  
+  &.active::after {
+    content:'';
+    position: absolute;
+    bottom: 8px; left: 50%;
+    width: 4px; height: 4px;
+    background: var(--accent);
+    border-radius: 50%;
+    transform: translateX(-50%);
   }
 `;
 
-const ActionGroup = styled.div`
+const ActionChain = styled.div`
   display: flex;
   align-items: center;
   gap: 20px;
 `;
 
-const NavButton = styled(NavLink)`
-  background: var(--primary);
-  color: var(--white) !important;
-  padding: 16px 36px;
-  border-radius: var(--radius-pill);
-  font-size: 0.95rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  box-shadow: 0 10px 30px rgba(26, 42, 18, 0.2);
-
-  &:hover {
-    background: var(--accent);
-    color: var(--primary) !important;
-    transform: translateY(-3px);
-  }
+const IconButton = styled(NavLink)`
+  position: relative;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--bg-surface-alt);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-size: 1.2rem;
+  transition: var(--transition-smooth);
+  
+  &:hover { background: var(--primary); color: white; transform: translateY(-3px); }
 `;
 
-const CustomLogoutBtn = styled.button`
-  background: rgba(0,0,0,0.05);
-  color: var(--text-charcoal);
+const CartBadge = styled.span`
+  position: absolute;
+  top: -6px; right: -6px;
+  background: var(--accent);
+  color: var(--primary);
+  width: 20px; height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: 900;
+  border: 2px solid var(--bg-surface);
+`;
+
+const ProfileTrigger = styled(NavLink)`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 16px 6px 8px;
+  background: var(--bg-surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  text-decoration: none;
+  transition: var(--transition-smooth);
+
+  .avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); }
+  .name { font-size: 0.8rem; font-weight: 900; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.05em; }
+  
+  &:hover { border-color: var(--accent); background: var(--bg-surface); transform: translateY(-2px); }
+  @media (max-width: 600px) { .name { display: none; } padding: 6px; }
+`;
+
+const AuthBtn = styled(NavLink)`
   padding: 14px 28px;
+  background: var(--primary);
+  color: white;
   border-radius: var(--radius-pill);
   font-weight: 900;
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-
-  &:hover {
-    background: var(--text-charcoal);
-    color: var(--white);
-  }
+  text-decoration: none;
+  box-shadow: 0 10px 25px rgba(76, 175, 80, 0.2);
+  transition: var(--transition-smooth);
+  
+  &:hover { background: var(--accent); transform: translateY(-3px); box-shadow: var(--shadow-premium); }
 `;
 
-const CartLink = styled(NavLink)`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--text-charcoal);
-  font-weight: 900;
-  font-size: 1.2rem;
-  position: relative;
-  transition: var(--transition);
-
-  &:hover { transform: scale(1.1); color: var(--primary); }
-`;
-
-const Badge = styled.span`
-  background: var(--accent);
-  color: var(--primary);
-  width: 22px;
-  height: 22px;
-  position: absolute;
-  top: -10px;
-  right: -12px;
+const LogoutOutlinedButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
-  font-size: 0.75rem;
-  font-weight: 900;
-  border: 2px solid var(--white);
+  background: transparent;
+  color: #FF5252;
+  border: 1px solid rgba(255, 82, 82, 0.3);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  
+  &:hover {
+    background: #FF5252;
+    color: white;
+    transform: translateY(-3px);
+  }
 `;
 
 const Hamburger = styled.button`
   display: none;
-  background: var(--bg-cream);
-  padding: 14px;
+  width: 48px; height: 48px;
   border-radius: 50%;
-
-  @media (max-width: 1024px) {
-    display: block;
-  }
+  background: var(--bg-surface-alt);
+  border: 1px solid var(--border);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  @media (max-width: 1100px) { display: flex; }
 `;
 
 const DrawerOverlay = styled.div`
-  display: ${(p) => (p.open ? "block" : "none")};
   position: fixed;
   inset: 0;
-  background: rgba(26, 42, 18, 0.9);
-  backdrop-filter: blur(10px);
-  z-index: 1100;
+  background: rgba(13, 15, 12, 0.8);
+  backdrop-filter: blur(20px);
+  z-index: 3000;
+  opacity: ${p => p.$open ? 1 : 0};
+  visibility: ${p => p.$open ? 'visible' : 'hidden'};
+  transition: 0.5s ease;
 `;
 
-const Drawer = styled.div`
+const DrawerMenu = styled.div`
   position: fixed;
-  top: 0;
-  right: ${(p) => (p.open ? "0" : "-400px")};
-  width: 400px;
-  height: 100vh;
-  background: var(--white);
-  z-index: 1200;
-  transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
-  box-shadow: -30px 0 80px rgba(0, 0, 0, 0.3);
-  padding: 50px 30px;
-`;
-
-const DrawerHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 60px;
-`;
-
-const DrawerBrand = styled.div`
-  font-family: "Fraunces", serif;
-  font-size: 2.2rem;
-  font-weight: 900;
-  color: var(--primary);
-  span { font-weight: 400; opacity: 0.6; }
-`;
-
-const DrawerNav = styled.nav`
+  top: 12px; right: ${p => p.$open ? '12px' : '-450px'};
+  width: 420px;
+  height: calc(100vh - 24px);
+  background: var(--bg-surface);
+  border-radius: 32px;
+  z-index: 3100;
+  padding: 40px;
+  box-shadow: -20px 0 60px rgba(0,0,0,0.3);
+  transition: 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  
+  @media (max-width: 500px) { width: calc(100vw - 24px); }
 `;
 
 const DrawerLink = styled(NavLink)`
   padding: 20px 30px;
-  color: var(--text-charcoal);
+  font-size: 1.4rem;
   font-weight: 900;
-  font-size: 1.3rem;
-  border-radius: var(--radius-sm);
-  transition: var(--transition);
-
-  &.active, &:hover {
-    background: var(--primary);
-    color: var(--white);
-    transform: translateX(10px);
-  }
+  color: var(--text-primary);
+  text-decoration: none;
+  border-radius: 20px;
+  margin-bottom: 8px;
+  transition: var(--transition-smooth);
+  
+  &.active, &:hover { background: var(--bg-surface-alt); color: var(--primary); transform: translateX(10px); }
 `;
 
 // ===== COMPONENT =====
 const Navbar = () => {
+  const [isScrolled, setIsScrolled] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { user, logout } = useAuth();
   const { itemCount } = useCart();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => { setDrawerOpen(false); }, [location]);
 
   const handleLogout = async () => {
     await logout();
     navigate("/login");
-    setDrawerOpen(false);
   };
 
   return (
     <>
       <Nav>
-        <NavContainer>
+        <NavContainer style={{ height: isScrolled ? '70px' : '80px', marginTop: isScrolled ? '0' : '8px' }}>
           <Brand to="/">
-            🌾 Kisan<span>Store</span>
+            <span className="logo-icon">🌾</span>
+            Agrotek<span>Elite</span>
           </Brand>
 
-          <NavLinks>
-            <li><NavItem to="/">Home</NavItem></li>
-            <li><NavItem to="/products">Store</NavItem></li>
-            <li><NavItem to="/soil-registry">Soil Intel</NavItem></li>
-            <li><NavItem to="/crop-doctor">Crop Doc</NavItem></li>
-            <li><NavItem to="/price-list">Market</NavItem></li>
-            <li><NavItem to="/contact">Support</NavItem></li>
-          </NavLinks>
+          <NavList>
+            {['Home', 'Products', 'Soil Intel', 'Price List', 'Contact'].map(link => (
+              <li key={link}>
+                <NavItem to={link === 'Home' ? '/' : link === 'Soil Intel' ? '/soil-registry' : `/${link.toLowerCase().replace(' ', '-')}`}>
+                  {link}
+                </NavItem>
+              </li>
+            ))}
+            {user?.role === 'admin' && <li><NavItem to="/admin/dashboard" style={{color:'var(--accent)'}}>Command Center</NavItem></li>}
+          </NavList>
 
-          <ActionGroup>
-            <CartLink to="/cart">
-              🛒 {itemCount > 0 && <Badge>{itemCount}</Badge>}
-            </CartLink>
+          <ActionChain>
+            <ThemeToggle />
             
-            <div style={{ display: 'flex', gap: '12px' }}>
-              {user ? (
-                <>
-                  <NavItem to="/profile" style={{ padding:'0' }}>
-                    {user.avatarUrl ? (
-                      <img 
-                        src={`http://localhost:5000${user.avatarUrl}`} 
-                        alt="pfp" 
-                        style={{ width:'50px', height:'50px', borderRadius:'50%', objectFit:'cover', border:'3px solid var(--accent)' }} 
-                      />
-                    ) : (
-                      <div style={{ width:'50px', height:'50px', borderRadius:'50%', background:'var(--bg-cream)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.5rem' }}>👨‍🌾</div>
-                    )}
-                  </NavItem>
-                  <CustomLogoutBtn onClick={handleLogout}>Exit</CustomLogoutBtn>
-                </>
-              ) : (
-                <NavButton to="/login">Join Platform</NavButton>
-              )}
-            </div>
+            <IconButton to="/cart">
+              🛒 {itemCount > 0 && <CartBadge>{itemCount}</CartBadge>}
+            </IconButton>
+
+            {user ? (
+              <>
+                <ProfileTrigger to="/profile">
+                  <img className="avatar" src={user.avatarUrl ? `http://localhost:5000${user.avatarUrl}` : "https://ui-avatars.com/api/?name=User&background=2B3922&color=F5B611"} alt="profile" />
+                  <span className="name">{user.first_name}</span>
+                </ProfileTrigger>
+                <LogoutOutlinedButton onClick={handleLogout} title="Terminate Session">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </LogoutOutlinedButton>
+              </>
+            ) : (
+              <AuthBtn to="/login">Join Platform</AuthBtn>
+            )}
 
             <Hamburger onClick={() => setDrawerOpen(true)}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="3"><path d="M3 12h18M3 6h18M3 18h18" strokeLinecap="round"/></svg>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" strokeWidth="2.5"><path d="M3 12h18M3 6h18M3 18h18" strokeLinecap="round"/></svg>
             </Hamburger>
-          </ActionGroup>
+          </ActionChain>
         </NavContainer>
       </Nav>
 
-      <DrawerOverlay open={drawerOpen} onClick={() => setDrawerOpen(false)} />
-      <Drawer open={drawerOpen}>
-        <DrawerHeader>
-          <DrawerBrand>🌾 Kisan<span>Store</span></DrawerBrand>
-          <button onClick={() => setDrawerOpen(false)} style={{ fontSize:'2rem', color:'var(--primary)' }}>✕</button>
-        </DrawerHeader>
-        <DrawerNav>
-          <DrawerLink to="/" onClick={() => setDrawerOpen(false)}>Home</DrawerLink>
-          <DrawerLink to="/products" onClick={() => setDrawerOpen(false)}>Store Catalog</DrawerLink>
-          <DrawerLink to="/soil-registry" onClick={() => setDrawerOpen(false)}>Soil Intelligence</DrawerLink>
-          <DrawerLink to="/crop-doctor" onClick={() => setDrawerOpen(false)}>Crop Doctor</DrawerLink>
-          <DrawerLink to="/cart" onClick={() => setDrawerOpen(false)}>Shopping Cart</DrawerLink>
-          {user && <DrawerLink to="/profile" onClick={() => setDrawerOpen(false)}>Member Profile</DrawerLink>}
-          {user?.role === "admin" && <DrawerLink to="/admin/dashboard" onClick={() => setDrawerOpen(false)}>Admin Command</DrawerLink>}
-          <div style={{ margin: '40px 0', borderTop: '2px solid var(--border-soft)' }} />
+      <DrawerOverlay $open={drawerOpen} onClick={() => setDrawerOpen(false)} />
+      <DrawerMenu $open={drawerOpen}>
+        <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'48px'}}>
+          <h3 style={{fontFamily:'Fraunces', fontSize:'2rem'}}>🌾 Menu</h3>
+          <button onClick={() => setDrawerOpen(false)} style={{width:'48px', height:'48px', borderRadius:'50%', background:'var(--bg-surface-alt)', border:'none', fontSize:'1.2rem', cursor:'pointer'}}>✕</button>
+        </div>
+        
+        <div style={{display:'flex', flexDirection:'column', flex:1}}>
+          <DrawerLink to="/">Home Intelligence</DrawerLink>
+          <DrawerLink to="/products">Asset Catalog</DrawerLink>
+          <DrawerLink to="/soil-registry">Soil Analysis</DrawerLink>
+          <DrawerLink to="/price-list">Market Dynamics</DrawerLink>
+          <DrawerLink to="/cart">Procurement Dossier</DrawerLink>
+          {user && <DrawerLink to="/profile">Member Identity</DrawerLink>}
+          {user?.role === 'admin' && <DrawerLink to="/admin/dashboard" style={{color:'var(--accent)'}}>Admin Command</DrawerLink>}
+        </div>
+
+        <div style={{marginTop:'auto', borderTop:'1px solid var(--border)', paddingTop:'32px'}}>
           {user ? (
-            <DrawerLink as="button" onClick={handleLogout} style={{ color: '#d46a4f' }}>🚪 Logout Platform</DrawerLink>
+            <button onClick={handleLogout} style={{width:'100%', padding:'18px', background:'var(--bg-surface-alt)', color:'#FF5252', borderRadius:'var(--radius-pill)', border:'none', fontWeight:900, fontSize:'1rem', textTransform:'uppercase', cursor:'pointer'}}>Terminate Session</button>
           ) : (
-            <DrawerLink to="/login" onClick={() => setDrawerOpen(false)}>Log In</DrawerLink>
+            <AuthBtn to="/login" style={{display:'block', textAlign:'center'}}>Sign In</AuthBtn>
           )}
-        </DrawerNav>
-      </Drawer>
+        </div>
+      </DrawerMenu>
     </>
   );
 };

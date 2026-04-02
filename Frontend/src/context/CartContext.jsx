@@ -83,6 +83,11 @@ export const CartProvider = ({ children }) => {
     (sum, item) => sum + item.price * item.quantity,
     0,
   );
+  const taxTotal = cart.reduce(
+    (sum, item) => sum + (item.taxAmount || 0) * item.quantity,
+    0,
+  );
+  const grandTotal = totalAmount + taxTotal;
 
   return (
     <CartContext.Provider
@@ -94,6 +99,8 @@ export const CartProvider = ({ children }) => {
         clearCart,
         itemCount,
         totalAmount,
+        taxTotal,
+        grandTotal,
       }}
     >
       {children}

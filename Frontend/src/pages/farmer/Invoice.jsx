@@ -3,19 +3,43 @@ import { useParams } from "react-router-dom";
 import styled from "styled-components";
 import api from "../../api";
 
-const InvoiceContainer = styled.div`
-  max-width: 800px;
-  margin: 40px auto;
-  padding: 60px;
+// ===== STYLED COMPONENTS =====
+const PageBackground = styled.div`
+  min-height: 100vh;
+  background: var(--bg-app);
+  padding: 80px 24px;
+  animation: entrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  @media print { padding: 0; background: white; }
+`;
+
+const InvoicePaper = styled.div`
+  max-width: 900px;
+  margin: 0 auto;
   background: white;
-  box-shadow: 0 0 20px rgba(0,0,0,0.05);
-  font-family: 'Inter', sans-serif;
-  color: #333;
+  color: #1a1a1a;
+  padding: 80px;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.1);
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: 'AUTHORIZED DOCUMENT';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    font-size: 8rem;
+    font-weight: 900;
+    opacity: 0.03;
+    pointer-events: none;
+    white-space: nowrap;
+  }
 
   @media print {
-    margin: 0;
+    padding: 40px;
     box-shadow: none;
-    padding: 20px;
+    max-width: 100%;
+    margin: 0;
   }
 `;
 
@@ -23,108 +47,76 @@ const Header = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 60px;
-  border-bottom: 2px solid #f0f0f0;
+  margin-bottom: 80px;
+  border-bottom: 4px solid #f5f5f5;
   padding-bottom: 40px;
 `;
 
-const Logo = styled.div`
-  font-family: 'Fraunces', serif;
-  font-size: 2rem;
-  font-weight: 900;
-  color: #2b3922;
-  span { font-weight: 400; }
+const BrandBlock = styled.div`
+  .logo { font-family: 'Fraunces', serif; font-size: 2.2rem; font-weight: 900; color: #2B3922; margin-bottom: 12px; }
+  .tagline { font-size: 0.75rem; font-weight: 800; color: #666; text-transform: uppercase; letter-spacing: 0.15em; }
 `;
 
-const InfoGrid = styled.div`
+const DocMeta = styled.div`
+  text-align: right;
+  h1 { font-size: 3rem; margin: 0; color: #2B3922; letter-spacing: -0.02em; }
+  p { font-size: 1rem; color: #888; font-weight: 700; margin-top: 4px; }
+`;
+
+const Grid = styled.div`
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 40px;
-  margin-bottom: 60px;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 60px;
+  margin-bottom: 80px;
 `;
 
 const InfoBox = styled.div`
-  h4 {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: #888;
-    margin-bottom: 12px;
-  }
-  p {
-    font-size: 1rem;
-    font-weight: 600;
-    line-height: 1.5;
-  }
+  h4 { font-size: 0.7rem; font-weight: 900; color: #aaa; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 16px; }
+  p { font-size: 1rem; font-weight: 700; color: #333; margin-bottom: 4px; line-height: 1.5; }
+  .highlight { color: #2B3922; }
 `;
 
-const Table = styled.table`
+const LineTable = styled.table`
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 60px;
-
-  th {
-    text-align: left;
-    padding: 15px;
-    border-bottom: 2px solid #2b3922;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-  }
-
-  td {
-    padding: 20px 15px;
-    border-bottom: 1px solid #f0f0f0;
-    font-size: 1rem;
-  }
+  
+  th { text-align: left; padding: 20px; background: #2B3922; color: white; font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; }
+  td { padding: 24px 20px; border-bottom: 1px solid #eee; font-size: 1rem; color: #444; }
+  tr:last-child td { border-bottom: 2px solid #2B3922; }
 `;
 
-const TotalSection = styled.div`
+const FiscalSummary = styled.div`
   margin-left: auto;
-  width: 300px;
-  .row {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px 0;
-    font-weight: 600;
-  }
-  .grand-total {
-    border-top: 2px solid #2b3922;
-    margin-top: 10px;
-    padding-top: 20px;
-    font-size: 1.4rem;
-    font-weight: 900;
-    color: #2b3922;
-  }
+  width: 350px;
+  
+  .row { display: flex; justify-content: space-between; padding: 12px 0; font-weight: 700; font-size: 1rem; color: #666; }
+  .total { font-size: 1.6rem; color: #2B3922; font-weight: 900; border-top: 2px solid #eee; margin-top: 12px; padding-top: 24px; }
+  .due { font-size: 1.8rem; color: #D46A4F; font-weight: 900; background: #fff5f2; margin-top: 20px; padding: 24px; border-radius: 8px; border-left: 6px solid #D46A4F; }
 `;
 
-const Footer = styled.div`
-  margin-top: 100px;
-  text-align: center;
-  font-size: 0.85rem;
-  color: #888;
-  border-top: 1px solid #f0f0f0;
-  padding-top: 40px;
-`;
-
-const PrintBtn = styled.button`
+const PrintFAB = styled.button`
   position: fixed;
-  bottom: 40px;
-  right: 40px;
-  background: #2b3922;
+  bottom: 40px; right: 40px;
+  background: var(--primary);
   color: white;
   border: none;
-  padding: 15px 30px;
-  border-radius: 50px;
-  font-weight: 800;
+  padding: 20px 40px;
+  border-radius: var(--radius-pill);
+  font-weight: 900;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
   cursor: pointer;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-
-  @media print {
-    display: none;
-  }
+  transition: var(--transition-smooth);
+  z-index: 5000;
+  
+  &:hover { background: var(--accent); transform: scale(1.05); }
+  @media print { display: none; }
 `;
 
+// ===== COMPONENT =====
 const Invoice = () => {
   const { id } = useParams();
   const [order, setOrder] = useState(null);
@@ -137,81 +129,94 @@ const Invoice = () => {
       .finally(() => setLoading(false));
   }, [id]);
 
-  if (loading) return <div style={{padding:'100px', textAlign:'center'}}>Loading Document...</div>;
-  if (!order) return <div style={{padding:'100px', textAlign:'center'}}>Order not found.</div>;
+  if (loading) return <PageBackground><div style={{textAlign:'center', padding:'100px', color:'var(--text-secondary)', fontWeight:900}}>SYNCHRONIZING DOCUMENT...</div></PageBackground>;
+  if (!order) return <PageBackground><div style={{textAlign:'center', padding:'100px', color:'var(--text-secondary)', fontWeight:900}}>ERROR: DOCUMENT NOT DISCOVERED</div></PageBackground>;
+
+  const balance = (order.grandTotal || order.totalAmount) - (order.amountPaid || 0);
 
   return (
-    <InvoiceContainer id="invoice">
-      <Header>
-        <Logo>🌾 Kisan<span>Store</span></Logo>
-        <div style={{ textAlign: 'right' }}>
-          <h2 style={{ fontSize: '2rem', marginBottom: '8px' }}>INVOICE</h2>
-          <p style={{ color: '#888' }}>INV-{order._id.substring(18).toUpperCase()}</p>
-        </div>
-      </Header>
+    <PageBackground>
+      <InvoicePaper>
+        <Header>
+          <BrandBlock>
+            <div className="logo">🌾 Agrotek<span>Elite</span></div>
+            <div className="tagline">Institutional Fertilizer & Seed Consortium</div>
+          </BrandBlock>
+          <DocMeta>
+            <h1>INVOICE</h1>
+            <p>CERTIFICATE ID: AG-INV-{order._id.substring(18).toUpperCase()}</p>
+          </DocMeta>
+        </Header>
 
-      <InfoGrid>
-        <InfoBox>
-          <h4>ISSUED TO</h4>
-          <p>{order.farmer?.first_name} {order.farmer?.last_name}</p>
-          <p>{order.farmerPhone}</p>
-          <p>{order.farmer?.address || "Registered Address on File"}</p>
-          <p>{order.farmer?.city}</p>
-        </InfoBox>
-        <InfoBox style={{ textAlign: 'right' }}>
-          <h4>DETAILS</h4>
-          <p>Order Date: {new Date(order.createdAt).toLocaleDateString()}</p>
-          <p>Pickup Date: {new Date(order.pickupDate).toLocaleDateString()}</p>
-          <p>Status: {order.status}</p>
-        </InfoBox>
-      </InfoGrid>
+        <Grid>
+          <InfoBox>
+            <h4>AUTHORIZED STAKEHOLDER</h4>
+            <p className="highlight">{order.farmer?.first_name} {order.farmer?.last_name}</p>
+            <p>{order.farmerPhone}</p>
+            <p>{order.farmer?.address || "Primary Registered Field Address"}</p>
+            <p>{order.farmer?.city || 'Central Region'}</p>
+          </InfoBox>
+          <InfoBox style={{ textAlign: 'right' }}>
+            <h4>TEMPORAL METRICS</h4>
+            <p>Authorization Date: {new Date(order.createdAt).toLocaleDateString()}</p>
+            <p>Designated Mobilization: {new Date(order.pickupDate).toLocaleDateString()}</p>
+            <p>Protocol Status: <span style={{color: order.status === 'completed' ? '#4CAF50' : '#F5B611'}}>{order.status.toUpperCase()}</span></p>
+          </InfoBox>
+        </Grid>
 
-      <Table>
-        <thead>
-          <tr>
-            <th>Product Specification</th>
-            <th style={{ textAlign: 'center' }}>Qty</th>
-            <th style={{ textAlign: 'right' }}>Rate</th>
-            <th style={{ textAlign: 'right' }}>Subtotal</th>
-          </tr>
-        </thead>
-        <tbody>
-          {order.items.map((item, i) => (
-            <tr key={i}>
-              <td>
-                <div style={{ fontWeight: 800 }}>{item.product?.name}</div>
-                <div style={{ fontSize: '0.8rem', color: '#888', marginTop: '4px' }}>{item.product?.category}</div>
-              </td>
-              <td style={{ textAlign: 'center' }}>{item.quantity}</td>
-              <td style={{ textAlign: 'right' }}>Rs. {item.price.toLocaleString()}</td>
-              <td style={{ textAlign: 'right' }}>Rs. {(item.price * item.quantity).toLocaleString()}</td>
+        <LineTable>
+          <thead>
+            <tr>
+              <th>Asset Specification</th>
+              <th style={{textAlign:'center'}}>Quantity</th>
+              <th style={{textAlign:'right'}}>Rate (PKR)</th>
+              <th style={{textAlign:'right'}}>Subtotal</th>
             </tr>
-          ))}
-        </tbody>
-      </Table>
+          </thead>
+          <tbody>
+            {order.items.map((item, i) => (
+              <tr key={i}>
+                <td>
+                  <div style={{fontWeight:900, color:'#111'}}>{item.product?.name}</div>
+                  <div style={{fontSize:'0.75rem', color:'#888', marginTop:'4px'}}>{item.product?.category.toUpperCase()} // STRATEGIC CLASS</div>
+                </td>
+                <td style={{textAlign:'center', fontWeight:800}}>{item.quantity} {item.product?.unit}</td>
+                <td style={{textAlign:'right'}}>Rs. {item.price.toLocaleString()}</td>
+                <td style={{textAlign:'right', fontWeight:900}}>Rs. {(item.price * item.quantity).toLocaleString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </LineTable>
 
-      <TotalSection>
-        <div className="row">
-          <span>Subtotal</span>
-          <span>Rs. {order.totalAmount.toLocaleString()}</span>
-        </div>
-        <div className="row">
-          <span>Tax (0%)</span>
-          <span>Rs. 0</span>
-        </div>
-        <div className="row grand-total">
-          <span>Total Paid</span>
-          <span>Rs. {order.totalAmount.toLocaleString()}</span>
-        </div>
-      </TotalSection>
+        <FiscalSummary>
+          <div className="row"><span>Gross Asset Valuation</span><span>Rs. {order.totalAmount.toLocaleString()}</span></div>
+          <div className="row"><span>Institutional Levy (Tax)</span><span>Rs. {(order.taxTotal || 0).toLocaleString()}</span></div>
+          <div className="row total"><span>Aggregate Magnitude</span><span>Rs. {(order.grandTotal || order.totalAmount).toLocaleString()}</span></div>
+          
+          {order.amountPaid > 0 && <div className="row" style={{color:'#4CAF50'}}><span>Fiscal Commitment (Paid)</span><span>Rs. {order.amountPaid.toLocaleString()}</span></div>}
+          
+          {balance > 0 ? (
+            <div className="due">
+              <div style={{fontSize:'0.7rem', marginBottom:'8px', opacity:0.8}}>OS_BALANCE_REMAINING</div>
+              <div style={{display:'flex', justifyContent:'space-between'}}>
+                <span>BALANCE DUE</span>
+                <span>Rs. {balance.toLocaleString()}</span>
+              </div>
+            </div>
+          ) : (
+            <div style={{textAlign:'center', marginTop:'32px', background:'#f0fdf4', color:'#166534', padding:'16px', borderRadius:'8px', fontWeight:900, border:'1px solid #4CAF50'}}>
+              ✅ FISCAL CLEARANCE VERIFIED
+            </div>
+          )}
+        </FiscalSummary>
 
-      <Footer>
-        <p>This is a computer-generated institutional document and does not require a physical signature.</p>
-        <p style={{ marginTop: '10px', fontWeight: 700 }}>© {new Date().getFullYear()} KisanStore Institutional Fertilizer & Seed Portal</p>
-      </Footer>
-
-      <PrintBtn onClick={() => window.print()}>🖨️ PRINT INVOICE</PrintBtn>
-    </InvoiceContainer>
+        <div style={{ marginTop: '100px', borderTop: '1px solid #f5f5f5', paddingTop: '40px', textAlign: 'center', fontSize: '0.8rem', color: '#aaa', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          <p>Electronic Verification Protocol Enabled. Physical Signature Redundant.</p>
+          <p style={{ marginTop: '12px', color: '#888' }}>© 2026 Agrotek Elite Intelligence Consortium. All Rights Authorized.</p>
+        </div>
+      </InvoicePaper>
+      <PrintFAB onClick={() => window.print()}>🖨️ Generate Physical Certificate</PrintFAB>
+    </PageBackground>
   );
 };
 

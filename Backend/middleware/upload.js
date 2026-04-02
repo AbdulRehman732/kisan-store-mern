@@ -11,18 +11,18 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|webp/;
+  const allowedTypes = /jpeg|jpg|png|webp|csv/;
   const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype);
+  const mimetype = allowedTypes.test(file.mimetype) || file.mimetype === 'text/csv' || file.mimetype === 'application/vnd.ms-excel';
   if (extname && mimetype) cb(null, true);
-  else cb(new Error('Images only! (jpeg, jpg, png, webp)'));
+  else cb(new Error('Images (jpeg, jpg, png, webp) or CSV files only!'));
 };
 
 const upload = multer({
   storage,
   limits: {
-    fileSize: 2 * 1024 * 1024, // 2MB
-    files: 1                    // max 1 file
+    fileSize: 5 * 1024 * 1024, // 5MB
+    files: 5                    // max 5 files
   },
   fileFilter
 });

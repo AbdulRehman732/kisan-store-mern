@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { login, register, getMe, updateProfile, refreshToken, logout, changePassword, updateCart, forgotPassword, resetPassword, uploadAvatar } = require('../controllers/authController');
+const { login, register, getMe, updateProfile, refreshToken, logout, changePassword, updateCart, forgotPassword, resetPassword, uploadAvatar, sendTemplateEmail } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 const upload = require('../middleware/upload');
 const validate = require('../middleware/validate');
@@ -18,6 +18,6 @@ router.post('/avatar', protect, upload.single('avatar'), uploadAvatar);
 
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password/:token', resetPassword);
+router.post('/send-template-email', sendTemplateEmail);
 
 module.exports = router;
-

@@ -21,6 +21,7 @@ const userSchema = new mongoose.Schema({
     quantity: { type: Number, min: 1 }
   }],
   emailVerified: { type: Boolean, default: false },
+  isActive: { type: Boolean, default: true },
   verificationToken: String,
   resetPasswordToken: String,
   resetPasswordExpires: Date,

@@ -164,7 +164,7 @@ async function seed() {
       farmer: farmers[0]._id,
       farmerPhone: farmers[0].phone[0],
       pickupDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
-      notes: "Please pack properly.",
+      notes: "Institutional Allocation — Priority One",
       items: [
         {
           product: createdProducts[0]._id,
@@ -172,6 +172,7 @@ async function seed() {
           price: createdProducts[0].price,
         }
       ],
+      payments: [],
       status: "Pending"
     });
 

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { 
   getProducts, getFeaturedProducts, getProduct, createProduct, updateProduct, 
-  deleteProduct, getReviews, addReview
+  deleteProduct, getReviews, addReview, bulkUploadProducts, exportProductsCsv
 } = require('../controllers/productController');
 const { protect, adminOnly } = require('../middleware/authMiddleware');
 const upload = require('../middleware/upload');
@@ -11,11 +11,14 @@ const { productValidator } = require('../middleware/validators');
 
 router.get('/', getProducts);
 router.get('/featured', getFeaturedProducts);
+router.get('/export-csv', protect, adminOnly, exportProductsCsv);
 
 router.get('/:id', getProduct);
 router.post('/', protect, adminOnly, upload.array('images', 5), productValidator, validate, createProduct);
 router.put('/:id', protect, adminOnly, upload.array('images', 5), productValidator, validate, updateProduct);
 router.delete('/:id', protect, adminOnly, deleteProduct);
+
+router.post('/bulk-upload', protect, adminOnly, upload.single('file'), bulkUploadProducts);
 
 // Review routes
 router.get('/:id/reviews', getReviews);

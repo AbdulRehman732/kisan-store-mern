@@ -1,799 +1,285 @@
-import React, { useState, useEffect, useRef } from "react";
-import styled, { keyframes } from "styled-components";
+import React, { useState, useEffect } from "react";
+import styled from "styled-components";
 import api from "../../api";
-
-// ===== ANIMATIONS =====
-const spin = keyframes`to { transform: rotate(360deg); }`;
-const fadeIn = keyframes`
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
-`;
+import BulkUploadModal from "../../components/BulkUploadModal";
+import { Button, GlassCard } from "../../styles/StyledComponents";
 
 // ===== STYLED COMPONENTS =====
 const PageContainer = styled.div`
-  padding: 40px;
-  animation: ${fadeIn} 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: var(--spacing-xxl);
+  animation: entrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  background: var(--bg-app);
+  min-height: 100vh;
 `;
 
 const Topbar = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 54px;
+  margin-bottom: var(--spacing-xxl);
   flex-wrap: wrap;
-  gap: 24px;
+  gap: var(--spacing-lg);
 `;
 
 const PageTitle = styled.h2`
-  font-size: 3rem;
-  color: var(--primary);
+  font-size: 3.5rem;
+  color: var(--text-primary);
   display: flex;
   align-items: center;
-  gap: 16px;
-  small { font-size: 1rem; color: var(--text-muted); font-weight: 500; font-family: 'Inter', sans-serif; }
-`;
-
-const CountBadge = styled.span`
-  background: var(--bg-cream);
-  color: var(--primary);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--radius-pill);
-  padding: 6px 18px;
-  font-size: 0.85rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-`;
-
-const AddBtn = styled.button`
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 16px 32px;
-  background: var(--text-charcoal);
-  color: var(--white);
-  border: none;
-  border-radius: var(--radius-pill);
-  font-weight: 800;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: var(--transition);
-  box-shadow: var(--shadow-premium);
-
-  &:hover { background: var(--primary); transform: translateY(-3px); }
-`;
-
-const BulkUploadBtn = styled(AddBtn)`
-  background: var(--bg-cream);
-  color: var(--primary);
-  border: 1px solid var(--border-soft);
-  box-shadow: none;
-  &:hover { background: var(--white); border-color: var(--primary); }
+  gap: var(--spacing-md);
+  small { font-size: 1rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.7; }
 `;
 
 const SearchInput = styled.input`
-  padding: 18px 28px;
-  background: var(--white);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--radius-sm);
+  padding: 18px 24px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   font-size: 1rem;
-  font-weight: 600;
-  width: 320px;
-  margin-bottom: 32px;
-  transition: var(--transition);
-  &:focus { outline: none; border-color: var(--primary); box-shadow: var(--shadow-premium); }
-  &::placeholder { color: var(--text-muted); opacity: 0.5; }
-`;
-
-const AlertBanner = styled.div`
-  background: ${(p) => (p.warning ? "var(--bg-cream)" : "#fdf2f0")};
-  border: 1px solid ${(p) => (p.warning ? "var(--accent)" : "#f5c6cb")};
-  color: ${(p) => (p.warning ? "var(--primary)" : "#721c24")};
-  border-radius: var(--radius-sm);
-  padding: 16px 24px;
-  font-size: 0.9rem;
   font-weight: 700;
-  margin-bottom: 24px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  width: 400px;
+  color: var(--text-primary);
+  transition: var(--transition-smooth);
+  &:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
+  &::placeholder { color: var(--text-secondary); opacity: 0.4; }
 `;
 
-const TableWrapper = styled.div`
-  background: var(--white);
-  border-radius: var(--radius-card);
+const TableCard = styled(GlassCard)`
+  padding: 0;
   overflow: hidden;
-  box-shadow: var(--shadow-premium);
-  border: 1px solid var(--border-soft);
-  overflow-x: auto;
+  border: 1px solid var(--border);
+`;
 
-  table { width: 100%; border-collapse: collapse; }
-
+const EliteTable = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  
   thead th {
     background: var(--primary);
-    padding: 24px 32px;
+    padding: 24px;
     text-align: left;
-    font-size: 0.75rem;
-    font-weight: 800;
+    font-size: 0.72rem;
+    font-weight: 900;
+    color: var(--text-inverse);
     text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--white);
+    letter-spacing: 0.15em;
   }
 
   tbody td {
-    padding: 24px 32px;
-    border-bottom: 1px solid var(--bg-cream);
-    color: var(--text-charcoal);
+    padding: 24px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-primary);
     font-weight: 600;
   }
 
   tbody tr:last-child td { border-bottom: none; }
-  tbody tr:hover { background: var(--bg-cream); }
+  tbody tr:hover { background: var(--bg-surface-alt); }
 `;
 
-const ProductImg = styled.div`
-  width: 50px;
-  height: 50px;
-  border-radius: 12px;
-  background: var(--bg-cream);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.6rem;
-  overflow: hidden;
-  border: 1px solid var(--border-soft);
-  img { width: 100%; height: 100%; object-fit: cover; }
-`;
-
-const CategoryBadge = styled.span`
+const Badge = styled.span`
   padding: 6px 14px;
   border-radius: var(--radius-pill);
   font-size: 0.7rem;
-  font-weight: 800;
+  font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  background: ${(p) => (p.$category === "Fertilizer" ? "var(--bg-cream)" : "var(--accent)")};
-  color: var(--primary);
-  border: 1px solid var(--border-soft);
+  background: ${p => p.$c === 'Fertilizer' ? 'rgba(76, 175, 80, 0.1)' : 'rgba(245, 182, 17, 0.1)'};
+  color: ${p => p.$c === 'Fertilizer' ? '#4CAF50' : '#F5B611'};
+  border: 1px solid currentColor;
 `;
 
-const StockBadge = styled.span`
-  padding: 6px 14px;
-  border-radius: var(--radius-pill);
-  font-size: 0.7rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  background: ${(p) => (p.$stock === 0 ? "#fdf2f0" : p.$stock <= 10 ? "var(--accent)" : "rgba(43,57,34,0.05)")};
-  color: ${(p) => (p.$stock === 0 ? "#d46a4f" : "var(--primary)")};
-  border: 1px solid ${(p) => (p.$stock === 0 ? "#f5c6cb" : "var(--border-soft)")};
-`;
-
-const ActionBtn = styled.button`
-  padding: 10px 18px;
-  border-radius: var(--radius-pill);
-  font-weight: 800;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  cursor: pointer;
-  transition: var(--transition);
-  border: 1px solid var(--border-soft);
-  background: ${(p) => (p.danger ? "var(--white)" : "var(--white)")};
-  color: ${(p) => (p.danger ? "#d46a4f" : "var(--primary)")};
-  margin-right: 12px;
-
-  &:hover {
-    background: ${(p) => (p.danger ? "#d46a4f" : "var(--primary)")};
-    color: var(--white);
-    transform: translateY(-2px);
-  }
-`;
-
-const Overlay = styled.div`
+const ModalOverlay = styled.div`
   position: fixed;
   inset: 0;
-  background: rgba(43, 57, 34, 0.4);
-  backdrop-filter: blur(8px);
-  z-index: 2000;
+  background: rgba(13, 15, 12, 0.85);
+  backdrop-filter: blur(40px);
+  z-index: 5000;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 40px;
+  animation: entrance 0.4s ease;
 `;
 
-const Modal = styled.div`
-  background: var(--white);
+const ModalPanel = styled.div`
+  background: var(--bg-surface);
   border-radius: var(--radius-card);
-  padding: 60px;
+  padding: 50px;
   width: 100%;
   max-width: 700px;
   max-height: 90vh;
   overflow-y: auto;
+  border: 1px solid var(--border);
   box-shadow: var(--shadow-premium);
-  animation: ${fadeIn} 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  border: 1px solid var(--border-soft);
-`;
-
-const ModalHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 48px;
-`;
-
-const ModalTitle = styled.h3`
-  font-size: 2.2rem;
-  color: var(--primary);
-  letter-spacing: -0.02em;
-`;
-
-const CloseBtn = styled.button`
-  background: var(--bg-cream);
-  border: none;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: var(--transition);
-  color: var(--primary);
-  &:hover { transform: rotate(90deg); background: var(--accent); }
-`;
-
-const FormRow = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  @media (max-width: 600px) { grid-template-columns: 1fr; }
+  position: relative;
 `;
 
 const FormGroup = styled.div`
   margin-bottom: 24px;
-
-  label {
-    display: block;
-    font-size: 0.75rem;
-    font-weight: 800;
-    color: var(--primary);
-    margin-bottom: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-  }
-
+  label { display: block; font-size: 0.75rem; font-weight: 900; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 10px; letter-spacing: 0.1em; }
   input, select, textarea {
     width: 100%;
-    padding: 16px 20px;
-    border: 1px solid var(--bg-cream);
-    background: var(--bg-cream);
-    border-radius: var(--radius-sm);
+    padding: 18px;
+    background: var(--bg-surface-alt);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
     font-size: 1rem;
-    color: var(--text-charcoal);
-    font-weight: 600;
-    transition: var(--transition);
-    &:focus { outline: none; border-color: var(--primary); background: var(--white); }
+    color: var(--text-primary);
+    font-weight: 700;
+    transition: var(--transition-smooth);
+    &:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
   }
-
-  textarea { min-height: 120px; resize: vertical; }
 `;
-
-const CheckboxLabel = styled.label`
-  display: flex !important;
-  align-items: center;
-  gap: 12px;
-  cursor: pointer;
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--primary);
-  margin-bottom: 0 !important;
-  input { width: 22px !important; height: 22px !important; accent-color: var(--primary); }
-`;
-
-const Alert = styled.div`
-  padding: 20px 24px;
-  border-radius: var(--radius-sm);
-  font-size: 0.95rem;
-  font-weight: 700;
-  margin-bottom: 32px;
-  background: ${(p) => (p.success ? "var(--bg-cream)" : "#fdf2f0")};
-  color: ${(p) => (p.success ? "var(--primary)" : "#d46a4f")};
-  border: 1px solid ${(p) => (p.success ? "var(--border-soft)" : "#f5c6cb")};
-`;
-
-const BtnRow = styled.div`
-  display: flex;
-  gap: 20px;
-  margin-top: 24px;
-`;
-
-const CancelBtn = styled.button`
-  flex: 1;
-  padding: 20px;
-  background: var(--bg-cream);
-  color: var(--primary);
-  border: none;
-  border-radius: var(--radius-pill);
-  font-weight: 800;
-  font-size: 0.95rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  cursor: pointer;
-  transition: var(--transition);
-  &:hover { background: var(--white); border: 1px solid var(--primary); }
-`;
-
-const SubmitBtn = styled.button`
-  flex: 2;
-  padding: 20px;
-  background: var(--text-charcoal);
-  color: var(--white);
-  border: none;
-  border-radius: var(--radius-pill);
-  font-weight: 800;
-  font-size: 0.95rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  cursor: pointer;
-  transition: var(--transition);
-  &:hover { background: var(--primary); transform: translateY(-3px); }
-  &:disabled { opacity: 0.5; }
-`;
-
-const ProductCell = styled.div`
-  display: flex !important;
-  align-items: center;
-  gap: 18px;
-`;
-
-const SpinnerWrap = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 400px;
-`;
-
-const Spinner = styled.div`
-  width: 50px;
-  height: 50px;
-  border: 4px solid var(--bg-cream);
-  border-top-color: var(--primary);
-  border-radius: 50%;
-  animation: ${spin} 0.8s linear infinite;
-`;
-
-// ===== COMPONENT =====
-const emojis = { Fertilizer: "🌱", Seeds: "🌾" };
-const empty = {
-  name: "",
-  category: "Fertilizer",
-  price: "",
-  unit: "per bag",
-  stock: "",
-  description: "",
-  brand: "",
-  featured: false,
-  tags: "",
-  crops: [],
-};
 
 const AdminProducts = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState(empty);
-  const [saving, setSaving] = useState(false);
-  const [bulkLoading, setBulkLoading] = useState(false);
-  const [bulkStatus, setBulkStatus] = useState("");
-  const [imageFiles, setImageFiles] = useState([]);
-  const [msg, setMsg] = useState({ text: "", type: "" });
+  const [confirmDelete, setConfirmDelete] = useState(null);
+  
+  const [form, setForm] = useState({ name: "", category: "Fertilizer", price: "", stock: "", unit: "per bag", description: "" });
   const [search, setSearch] = useState("");
-  const fileInputRef = useRef(null);
+  const [category, setCategory] = useState("All");
+  const [showBulk, setShowBulk] = useState(false);
 
-  const fetchProducts = () => {
+  const fetchProducts = async () => {
     setLoading(true);
-    api.get("/products")
-      .then((res) => setProducts(res.data.products || []))
-      .catch((err) => console.error("Fetch failed:", err))
-      .finally(() => setLoading(false));
-  };
-
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  const openAdd = () => {
-    setEditing(null);
-    setForm(empty);
-    setMsg({ text: "", type: "" });
-    setShowModal(true);
-    setImageFiles([]);
-  };
-
-  const openEdit = (p) => {
-    setEditing(p._id);
-    setForm(p);
-    setMsg({ text: "", type: "" });
-    setShowModal(true);
-    setImageFiles([]);
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm("Authorize administrative deletion of this asset?")) return;
     try {
-      await api.delete(`/products/${id}`);
+      const res = await api.get(`/products?search=${search}${category !== 'All' ? `&category=${category}` : ''}`);
+      setProducts(res.data.products || []);
+    } catch (err) { console.error(err); }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => { fetchProducts(); }, [search, category]);
+
+  const handleDelete = async () => {
+    if (!confirmDelete) return;
+    try {
+      await api.delete(`/products/${confirmDelete}`);
+      setConfirmDelete(null);
       fetchProducts();
-    } catch (err) {
-      alert("Operational Deletion Failed");
-    }
+    } catch (err) { alert("Deletion failure."); }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSaving(true);
     try {
-      const fd = new FormData();
-      Object.keys(form).forEach((k) => fd.append(k, form[k]));
-      if (imageFiles.length > 0) {
-        imageFiles.forEach(file => fd.append("images", file));
+      const formData = new FormData();
+      Object.keys(form).forEach(k => {
+        if (k !== 'images' && form[k] !== undefined && form[k] !== null) {
+          formData.append(k, form[k]);
+        }
+      });
+      if (form.images && form.images.length > 0) {
+        for(let i = 0; i < form.images.length; i++) {
+          formData.append('images', form.images[i]);
+        }
       }
-
-      if (editing) {
-        await api.put(`/products/${editing}`, fd);
-        setMsg({ text: "Asset Registration Updated Successfully", type: "success" });
-      } else {
-        await api.post("/products", fd);
-        setMsg({ text: "New Asset Registered Successfully", type: "success" });
-      }
-      setTimeout(() => {
-        setShowModal(false);
-        fetchProducts();
-      }, 1500);
-    } catch (err) {
-      setMsg({ text: err.response?.data?.message || "Operation Authorization Failed", type: "error" });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleBulkUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setBulkLoading(true);
-    setBulkStatus("Initiating secure data ingestion...");
-    const fd = new FormData();
-    fd.append("file", file);
-
-    try {
-      const res = await api.post("/admin/products/bulk-upload", fd);
-      setBulkStatus(`Synchronization Successful: ${res.data.count} records ingested.`);
+      
+      const config = { headers: { 'Content-Type': 'multipart/form-data' } };
+      
+      if (editing) await api.put(`/products/${editing}`, formData, config);
+      else await api.post("/products", formData, config);
+      
+      setShowModal(false);
       fetchProducts();
-    } catch (err) {
-      setBulkStatus(`Ingestion Aborted: ${err.response?.data?.message || err.message}`);
-    } finally {
-      setBulkLoading(false);
-      e.target.value = null;
-    }
+    } catch (err) { alert("Registry update failure."); }
   };
-
-  const openBulkUpload = () => fileInputRef.current.click();
-
-  const filtered = products.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase()) ||
-    p.category.toLowerCase().includes(search.toLowerCase()) ||
-    (p.brand && p.brand.toLowerCase().includes(search.toLowerCase()))
-  );
-
-  const outOfStock = products.filter((p) => p.stock === 0);
-  const lowStock = products.filter((p) => p.stock > 0 && p.stock <= 5);
 
   return (
     <PageContainer>
       <Topbar>
-        <PageTitle>
-          Operational Inventory
-          <small> Institutional fertilizer and seed management</small>
-        </PageTitle>
-        <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
-          <AddBtn onClick={openAdd}>+ REGISTER PRODUCT</AddBtn>
-          <BulkUploadBtn
-            type="button"
-            onClick={openBulkUpload}
-            disabled={bulkLoading}
-          >
-            {bulkLoading ? "SYNCHRONIZING..." : "📄 BULK CSV INGEST"}
-          </BulkUploadBtn>
+        <PageTitle>Inventory Logic <small>Institutional Asset Registry</small></PageTitle>
+        <div style={{ display: 'flex', gap: '16px' }}>
+          <Button onClick={() => { setEditing(null); setForm({ name: "", category: "Fertilizer", price: "", stock: "", unit: "per bag", description: "" }); setShowModal(true); }} primary>+ REGISTER ASSET</Button>
+          <Button onClick={() => setShowBulk(true)} outline>📦 BULK INGEST</Button>
         </div>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".csv"
-          style={{ display: "none" }}
-          onChange={handleBulkUpload}
-        />
       </Topbar>
 
-      {outOfStock.length > 0 && (
-        <AlertBanner>
-          ⚠ <strong>CRITICAL STOCK DEPLETION:</strong> {outOfStock.length} assets are currently unavailable:{" "}
-          {outOfStock.map((p) => p.name).join(", ")}
-        </AlertBanner>
-      )}
-      {bulkStatus && (
-        <AlertBanner warning={bulkStatus.includes("failed") || bulkStatus.includes("Aborted")}>
-          ℹ {bulkStatus}
-        </AlertBanner>
-      )}
-      {lowStock.length > 0 && (
-        <AlertBanner warning>
-          ⚠ <strong>THRESHOLD WARNING:</strong> {lowStock.length} assets are below optimal reserve levels:{" "}
-          {lowStock.map((p) => p.name).join(", ")}
-        </AlertBanner>
-      )}
-
-      <SearchInput
-        type="text"
-        placeholder="Search operational database..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
+      <div style={{ display: 'flex', gap: '24px', marginBottom: '40px', alignItems: 'center' }}>
+        <SearchInput placeholder="Search institutional manifest..." value={search} onChange={e => setSearch(e.target.value)} />
+        <input list="categories-list" value={category === 'All' ? '' : category} onChange={e => setCategory(e.target.value || 'All')} placeholder="All Classifications" style={{ padding: '18px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '12px', color: 'var(--text-primary)', fontWeight: 900, width: '250px' }} />
+        <datalist id="categories-list">
+          <option value="Fertilizer" />
+          <option value="Seeds" />
+          <option value="Sprays" />
+          <option value="Crop Medicines" />
+        </datalist>
+      </div>
 
       {loading ? (
-        <SpinnerWrap>
-          <Spinner />
-        </SpinnerWrap>
-      ) : filtered.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "100px 20px", color: "var(--text-muted)" }}>
-          <span style={{ fontSize: "4rem", display: "block", marginBottom: "24px" }}>🌱</span>
-          <h3 style={{ fontSize: "1.5rem" }}>No registry entries found</h3>
-        </div>
+        <div style={{ padding: '100px', textAlign: 'center' }}>🔄 Initializing Operational Data...</div>
       ) : (
-        <TableWrapper>
-          <table>
+        <TableCard>
+          <EliteTable>
             <thead>
               <tr>
-                <th>Asset Specification</th>
+                <th>Asset Identity</th>
                 <th>Classification</th>
                 <th>Institutional Rate</th>
                 <th>Reserve Level</th>
-                <th>Priority</th>
-                <th>Operations</th>
+                <th>Protocol Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((p) => (
+              {products.map(p => (
                 <tr key={p._id}>
+                  <td style={{ fontWeight: 900 }}>{p.name}</td>
+                  <td><Badge $c={p.category}>{p.category}</Badge></td>
+                  <td style={{ fontWeight: 900 }}>Rs. {p.price.toLocaleString()} <span style={{fontSize:'0.8rem', opacity:0.5}}>/ {p.unit}</span></td>
+                  <td style={{ fontWeight: 900 }}>{p.stock} units</td>
                   <td>
-                    <ProductCell style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
-                      <ProductImg>
-                        {p.image?.[0] ? (
-                          <img
-                            src={`http://localhost:5000${p.image[0]}`}
-                            alt={p.name}
-                          />
-                        ) : (
-                          emojis[p.category] || "📦"
-                        )}
-                      </ProductImg>
-                      <div>
-                        <div style={{ fontWeight: 800, color: "var(--primary)", fontSize: "1.15rem" }}>{p.name}</div>
-                        {p.brand && (
-                          <div
-                            style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 700, textTransform: "uppercase" }}
-                          >
-                            {p.brand}
-                          </div>
-                        )}
-                      </div>
-                    </ProductCell>
-                  </td>
-                  <td>
-                    <CategoryBadge $category={p.category}>
-                      {p.category}
-                    </CategoryBadge>
-                  </td>
-                  <td style={{ fontWeight: 800, color: "var(--text-charcoal)" }}>
-                    Rs. {p.price?.toLocaleString()}
-                    <span style={{ color: "var(--text-muted)", fontWeight: 500, fontSize: "0.85rem", marginLeft: "4px" }}>
-                      /{p.unit}
-                    </span>
-                  </td>
-                  <td>
-                    <StockBadge $stock={p.stock}>{p.stock} units</StockBadge>
-                  </td>
-                  <td>{p.featured ? "⭐ HIGH" : "STANDARD"}</td>
-                  <td>
-                    <ActionBtn onClick={() => openEdit(p)}>EDIT</ActionBtn>
-                    <ActionBtn danger onClick={() => handleDelete(p._id)}>
-                      DELETE
-                    </ActionBtn>
+                    <Button onClick={() => { setEditing(p._id); setForm(p); setShowModal(true); }} outline small style={{ marginRight: '8px' }}>Edit</Button>
+                    <Button onClick={() => setConfirmDelete(p._id)} amber small>Delete</Button>
                   </td>
                 </tr>
               ))}
             </tbody>
-          </table>
-        </TableWrapper>
+          </EliteTable>
+        </TableCard>
       )}
 
-      {/* Add/Edit Modal */}
       {showModal && (
-        <Overlay
-          onClick={(e) => e.target === e.currentTarget && setShowModal(false)}
-        >
-          <Modal>
-            <ModalHeader>
-              <ModalTitle>
-                {editing ? "Edit Registry Entry" : "Register New Asset"}
-              </ModalTitle>
-              <CloseBtn onClick={() => setShowModal(false)}>✕</CloseBtn>
-            </ModalHeader>
-
-            {msg.text && (
-              <Alert success={msg.type === "success"}>
-                {msg.text}
-              </Alert>
-            )}
-
+        <ModalOverlay onClick={e => e.target === e.currentTarget && setShowModal(false)}>
+          <ModalPanel>
+            <h3 style={{ fontSize: '2.5rem', marginBottom: '40px' }}>{editing ? 'Update Asset Registry' : 'Register New Asset'}</h3>
             <form onSubmit={handleSubmit}>
-              <FormGroup>
-                <label>Asset Specification Name</label>
-                <input
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  required
-                />
-              </FormGroup>
-              <FormRow>
-                <FormGroup>
-                  <label>Operational Category</label>
-                  <select
-                    value={form.category}
-                    onChange={(e) =>
-                      setForm({ ...form, category: e.target.value })
-                    }
-                  >
-                    <option>Fertilizer</option>
-                    <option>Seeds</option>
-                  </select>
-                </FormGroup>
-                <FormGroup>
-                  <label>Brand Designation</label>
-                  <input
-                    value={form.brand}
-                    onChange={(e) =>
-                      setForm({ ...form, brand: e.target.value })
-                    }
-                    placeholder="Alpha, Bravo, etc."
-                  />
-                </FormGroup>
-              </FormRow>
-              <FormRow>
-                <FormGroup>
-                  <label>Unit Valuation (Rs.)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={form.price}
-                    onChange={(e) =>
-                      setForm({ ...form, price: e.target.value })
-                    }
-                    required
-                  />
-                </FormGroup>
-                <FormGroup>
-                  <label>Standard Unit</label>
-                  <input
-                    value={form.unit}
-                    onChange={(e) => setForm({ ...form, unit: e.target.value })}
-                    placeholder="per bag, per kg"
-                  />
-                </FormGroup>
-              </FormRow>
-              <FormRow>
-                <FormGroup>
-                  <label>Reserve Inventory (units)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={form.stock}
-                    onChange={(e) =>
-                      setForm({ ...form, stock: e.target.value })
-                    }
-                    required
-                  />
-                </FormGroup>
-                <FormGroup>
-                  <label>Identifier Tags</label>
-                  <input
-                    value={form.tags}
-                    onChange={(e) => setForm({ ...form, tags: e.target.value })}
-                    placeholder="wheat, organic, nitrogen"
-                  />
-                </FormGroup>
-              </FormRow>
-              <FormGroup>
-                <label>Target Crops</label>
-                <div style={{ display:'flex', gap:'15px', flexWrap:'wrap', background:'var(--bg-cream)', padding:'15px', borderRadius:'12px' }}>
-                  {['Wheat', 'Cotton', 'Rice', 'Maize', 'Sugarcane', 'Citrus'].map(c => (
-                    <label key={c} style={{ display:'flex', alignItems:'center', gap:'8px', fontSize:'0.85rem', fontWeight:800, cursor:'pointer' }}>
-                      <input 
-                        type="checkbox" 
-                        checked={form.crops?.includes(c)}
-                        onChange={(e) => {
-                          const newCrops = e.target.checked 
-                            ? [...(form.crops || []), c]
-                            : (form.crops || []).filter(x => x !== c);
-                          setForm({...form, crops: newCrops});
-                        }}
-                      /> {c}
-                    </label>
-                  ))}
-                </div>
-              </FormGroup>
-              <FormGroup>
-                <label>Technical Description</label>
-                <textarea
-                  value={form.description}
-                  onChange={(e) =>
-                    setForm({ ...form, description: e.target.value })
-                  }
-                />
-              </FormGroup>
-              <FormGroup>
-                <label>Product Imagery <small style={{fontWeight:400}}>(Select up to 5 photos)</small></label>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={(e) => setImageFiles(Array.from(e.target.files))}
-                  />
-                  {imageFiles.length > 0 && (
-                    <div style={{ display:'flex', gap:'10px', flexWrap:'wrap' }}>
-                      {imageFiles.map((f, i) => (
-                        <div key={i} style={{ fontSize:'0.75rem', background:'var(--bg-cream)', padding:'4px 10px', borderRadius:'8px', fontWeight:800 }}>
-                          📸 {f.name.substring(0, 15)}...
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </FormGroup>
-              <FormGroup>
-                <CheckboxLabel>
-                  <input
-                    type="checkbox"
-                    checked={form.featured}
-                    onChange={(e) =>
-                      setForm({ ...form, featured: e.target.checked })
-                    }
-                  />
-                  Mark as High-Priority Priority Allocation
-                </CheckboxLabel>
-              </FormGroup>
-              <BtnRow>
-                <CancelBtn type="button" onClick={() => setShowModal(false)}>
-                  DISMISS
-                </CancelBtn>
-                <SubmitBtn type="submit" disabled={saving}>
-                  {saving
-                    ? "COMMITTING..."
-                    : editing
-                      ? "AUTHORIZE UPDATE"
-                      : "CONFIRM REGISTRATION"}
-                </SubmitBtn>
-              </BtnRow>
+              <FormGroup><label>Asset Specification</label><input required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></FormGroup>
+              <FormGroup><label>Asset Classification</label><input required list="categories-list" value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} placeholder="Select from list or define new classification..." /></FormGroup>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                <FormGroup><label>Pricing Baseline (Rs.)</label><input type="number" required value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} /></FormGroup>
+                <FormGroup><label>Operational Reserve (Units)</label><input type="number" required value={form.stock} onChange={e => setForm({ ...form, stock: e.target.value })} /></FormGroup>
+              </div>
+              <FormGroup><label>Asset Images</label><input type="file" multiple accept="image/*" onChange={e => setForm({ ...form, images: e.target.files })} style={{ padding: '14px' }} /></FormGroup>
+              <FormGroup><label>Detailed Payload Description</label><textarea rows={4} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} /></FormGroup>
+              <div style={{ display: 'flex', gap: '16px', marginTop: '40px' }}>
+                <Button type="button" onClick={() => setShowModal(false)} outline style={{ flex: 1 }}>ABORT</Button>
+                <Button type="submit" primary style={{ flex: 2 }}>AUTHORIZE REGISTRY</Button>
+              </div>
             </form>
-          </Modal>
-        </Overlay>
+          </ModalPanel>
+        </ModalOverlay>
       )}
+
+      {confirmDelete && (
+        <ModalOverlay onClick={() => setConfirmDelete(null)}>
+          <ModalPanel style={{ maxWidth: '500px', textAlign: 'center' }}>
+            <div style={{ fontSize: '4rem', marginBottom: '24px' }}>⚠️</div>
+            <h3 style={{ fontSize: '2rem', marginBottom: '12px' }}>Critical Authorization</h3>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '40px', fontWeight: 600 }}>Are you certain you wish to permanently purge this asset from the institutional registry?</p>
+            <div style={{ display: 'flex', gap: '16px' }}>
+              <Button onClick={() => setConfirmDelete(null)} outline style={{ flex: 1 }}>ABORT</Button>
+              <Button onClick={handleDelete} amber style={{ flex: 1 }}>AUTHORIZE REMOVAL</Button>
+            </div>
+          </ModalPanel>
+        </ModalOverlay>
+      )}
+
+      {showBulk && <BulkUploadModal onClose={() => setShowBulk(false)} onRefresh={fetchProducts} />}
     </PageContainer>
   );
 };
-
-
 
 export default AdminProducts;

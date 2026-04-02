@@ -94,7 +94,7 @@ const ForgotPassword = () => {
     setMsg({ text: "", type: "" });
     try {
       await api.post("/auth/forgot-password", { email });
-      setMsg({ text: "Reset link has been prepared. Please check the backend console for the link.", type: "success" });
+      setMsg({ text: "A secure recovery link has been dispatched to your institutional email address. Please check your inbox.", type: "success" });
     } catch (err) {
       setMsg({ text: err.response?.data?.message || "Failed to process request", type: "error" });
     } finally {

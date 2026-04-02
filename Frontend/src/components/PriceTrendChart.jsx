@@ -1,7 +1,5 @@
 import React from 'react';
 import { 
-  LineChart, 
-  Line, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -12,90 +10,97 @@ import {
 } from 'recharts';
 import styled from 'styled-components';
 
+// ===== STYLED COMPONENTS =====
 const ChartContainer = styled.div`
   width: 100%;
-  height: 300px;
-  margin-top: 24px;
-  background: var(--white);
-  padding: 20px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-soft);
+  height: 320px;
+  margin-top: 32px;
+  background: var(--bg-surface);
+  padding: 32px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-subtle);
 `;
 
-const ChartTitle = styled.h4`
-  font-size: 0.9rem;
-  font-weight: 800;
-  color: var(--primary);
+const Title = styled.h4`
+  font-size: 0.85rem;
+  font-weight: 900;
+  color: var(--text-primary);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 20px;
+  letter-spacing: 0.15em;
+  margin-bottom: 24px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   span { font-size: 1.2rem; }
+`;
+
+const TooltipWrapper = styled.div`
+  background: var(--primary);
+  color: var(--text-inverse);
+  padding: 12px 18px;
+  border-radius: 12px;
+  box-shadow: var(--shadow-premium);
+  font-size: 0.85rem;
+  font-weight: 900;
+  border: 1px solid rgba(255,255,255,0.1);
+  
+  p { margin: 0; }
+  .label { opacity: 0.6; font-size: 0.7rem; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
 `;
 
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     return (
-      <div style={{ 
-        background: 'var(--primary)', 
-        color: 'white', 
-        padding: '10px 15px', 
-        borderRadius: '8px',
-        boxShadow: 'var(--shadow-premium)',
-        fontSize: '0.85rem',
-        fontWeight: 700
-      }}>
-        <p style={{ margin: 0 }}>Price: Rs. {payload[0].value.toLocaleString()}</p>
-        <p style={{ margin: 0, opacity: 0.7, fontSize: '0.7rem' }}>
-          {new Date(payload[0].payload.date).toLocaleDateString()}
-        </p>
-      </div>
+      <TooltipWrapper>
+        <p>Rs. {payload[0].value.toLocaleString()}</p>
+        <p className="label">{new Date(payload[0].payload.date).toLocaleDateString()}</p>
+      </TooltipWrapper>
     );
   }
   return null;
 };
 
 const PriceTrendChart = ({ history = [] }) => {
-  // Format data for Recharts
+  // Format and sort data for Recharts analytical visualization
   const data = history.map(item => ({
     date: item.date,
     price: item.price,
-    label: new Date(item.date).toLocaleDateString('en-PK', { month: 'short' })
+    label: new Date(item.date).toLocaleDateString('en-PK', { month: 'short' }).toUpperCase()
   })).sort((a,b) => new Date(a.date) - new Date(b.date));
 
   return (
     <ChartContainer>
-      <ChartTitle><span>📉</span> Seasonal Market Trend (Last 6 Months)</ChartTitle>
+      <Title><span>📊</span> Analytical Market Trajectory (Last 6 Months)</Title>
       <ResponsiveContainer width="100%" height="80%">
         <AreaChart data={data}>
           <defs>
             <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="var(--accent)" stopOpacity={0.3}/>
+              <stop offset="5%" stopColor="var(--accent)" stopOpacity={0.4}/>
               <stop offset="95%" stopColor="var(--accent)" stopOpacity={0}/>
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-soft)" />
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
           <XAxis 
             dataKey="label" 
             axisLine={false} 
             tickLine={false} 
-            tick={{ fill: 'var(--text-muted)', fontSize: 11, fontWeight: 700 }}
+            tick={{ fill: 'var(--text-secondary)', fontSize: 10, fontWeight: 900, letterSpacing: '0.1em' }}
           />
           <YAxis 
             hide 
-            domain={['dataMin - 100', 'dataMax + 100']}
+            domain={['dataMin - 200', 'dataMax + 200']}
           />
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--accent)', strokeWidth: 1 }} />
           <Area 
             type="monotone" 
             dataKey="price" 
             stroke="var(--accent)" 
-            strokeWidth={3}
+            strokeWidth={4}
             fillOpacity={1} 
             fill="url(#colorPrice)" 
-            animationDuration={1500}
+            animationDuration={2000}
+            strokeLinecap="round"
           />
         </AreaChart>
       </ResponsiveContainer>

@@ -4,246 +4,152 @@ import api from '../../api';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
-import { saveAs } from 'file-saver';
-
-// ===== ANIMATIONS =====
-const spin = keyframes`to { transform: rotate(360deg); }`;
-const fadeIn = keyframes`from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); }`;
+import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell 
+} from 'recharts';
 
 // ===== STYLED COMPONENTS =====
 const PageContainer = styled.div`
-  padding: 40px;
-  animation: ${fadeIn} 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: var(--spacing-xl);
+  animation: entrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  background: var(--bg-app);
+  min-height: 100vh;
 `;
 
 const Topbar = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 54px;
+  margin-bottom: var(--spacing-xxl);
   flex-wrap: wrap;
-  gap: 24px;
+  gap: var(--spacing-lg);
 `;
 
 const PageTitle = styled.h2`
-  font-size: 3rem;
-  color: var(--primary);
+  font-size: 3.5rem;
+  color: var(--text-primary);
   display: flex;
   align-items: center;
-  gap: 16px;
-  small { font-size: 1rem; color: var(--text-muted); font-weight: 500; font-family: 'Inter', sans-serif; }
+  gap: var(--spacing-md);
+  small { font-size: 1rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.7; }
 `;
 
-const BtnGroup = styled.div`
-  display: flex;
-  gap: 16px;
-`;
-
-const ExportBtn = styled.button`
-  padding: 16px 32px;
+const ActionBtn = styled.button`
+  padding: 16px 28px;
+  background: ${p => p.$variant === 'pdf' ? 'var(--bg-surface-alt)' : 'var(--primary)'};
+  color: ${p => p.$variant === 'pdf' ? 'var(--text-primary)' : 'var(--text-inverse)'};
+  border: 1px solid ${p => p.$variant === 'pdf' ? 'var(--border)' : 'var(--primary)'};
   border-radius: var(--radius-pill);
-  border: 1px solid ${p => p.$variant === 'pdf' ? 'var(--border-soft)' : 'var(--text-charcoal)'};
-  background: ${p => p.$variant === 'pdf' ? 'var(--bg-cream)' : 'var(--text-charcoal)'};
-  color: ${p => p.$variant === 'pdf' ? 'var(--primary)' : 'var(--white)'};
-  font-weight: 800;
+  font-weight: 900;
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  cursor: pointer;
+  transition: var(--transition-smooth);
   display: flex;
   align-items: center;
-  gap: 10px;
-  transition: var(--transition);
-  box-shadow: ${p => p.$variant === 'pdf' ? 'none' : 'var(--shadow-premium)'};
+  gap: 12px;
+  cursor: pointer;
 
-  &:hover {
-    background: var(--primary);
-    color: var(--white);
-    transform: translateY(-3px);
-    border-color: var(--primary);
+  &:hover { 
+    background: ${p => p.$variant === 'pdf' ? 'var(--primary)' : 'var(--accent)'}; 
+    color: var(--text-inverse); 
+    transform: translateY(-3px); 
+    box-shadow: var(--shadow-premium);
+    border-color: transparent;
   }
 `;
 
-const StatsGrid = styled.div`
+const AnalyticsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 24px;
-  margin-bottom: 54px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+  @media (max-width: 1100px) { grid-template-columns: repeat(2, 1fr); }
 `;
 
-const StatCard = styled.div`
-  background: ${p => p.$highlight ? 'var(--primary)' : 'var(--white)'};
-  color: ${p => p.$highlight ? 'var(--white)' : 'var(--primary)'};
+const MetricCard = styled.div`
+  background: ${p => p.$highlight ? 'var(--primary)' : 'var(--bg-surface)'};
+  color: ${p => p.$highlight ? 'var(--text-inverse)' : 'var(--text-primary)'};
+  padding: var(--spacing-lg);
   border-radius: var(--radius-card);
-  padding: 40px;
-  box-shadow: var(--shadow-premium);
-  border: 1px solid var(--border-soft);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-subtle);
   text-align: center;
-  transition: var(--transition);
+  transition: var(--transition-smooth);
 
-  &:hover { transform: translateY(-5px); }
-
-  .icon { font-size: 2.2rem; margin-bottom: 16px; opacity: 0.9; }
-  .val { font-size: 1.8rem; font-weight: 900; letter-spacing: -0.02em; }
-  .label { 
-    font-size: 0.75rem; 
-    color: ${p => p.$highlight ? 'rgba(255,255,255,0.6)' : 'var(--text-muted)'}; 
-    text-transform: uppercase; 
-    font-weight: 800; 
-    letter-spacing: 0.1em; 
-    margin-top: 8px; 
-  }
+  .icon { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.9; }
+  .value { font-size: 2rem; font-weight: 900; letter-spacing: -0.02em; }
+  .label { font-size: 0.72rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.6; margin-top: 8px; }
 `;
 
-const FilterCard = styled.div`
-  background: var(--white);
-  border-radius: var(--radius-sm);
-  padding: 32px 40px;
-  margin-bottom: 40px;
-  border: 1px solid var(--border-soft);
+const ChartCard = styled.div`
+  background: var(--bg-surface);
+  border-radius: var(--radius-card);
+  padding: var(--spacing-xl);
+  margin-bottom: var(--spacing-xl);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-subtle);
+  
+  h3 { color: var(--text-primary); font-size: 1.6rem; margin-bottom: 32px; letter-spacing: -0.01em; }
+`;
+
+const FilterStrip = styled.div`
+  background: var(--bg-surface-alt);
+  padding: 24px 32px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
   display: flex;
-  gap: 32px;
+  gap: 24px;
   flex-wrap: wrap;
   align-items: flex-end;
-  box-shadow: var(--shadow-premium);
+  margin-bottom: var(--spacing-xl);
 `;
 
 const FormGroup = styled.div`
   flex: 1;
-  min-width: 200px;
-  
-  label {
-    display: block;
-    font-size: 0.7rem;
-    font-weight: 800;
-    color: var(--primary);
-    text-transform: uppercase;
-    margin-bottom: 12px;
-    letter-spacing: 0.12em;
-  }
-
+  min-width: 220px;
+  label { display: block; font-size: 0.7rem; font-weight: 900; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 10px; letter-spacing: 0.12em; }
   input, select {
     width: 100%;
-    padding: 16px 20px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--bg-cream);
-    background: var(--bg-cream);
+    padding: 16px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
     font-size: 0.95rem;
-    color: var(--text-charcoal);
+    color: var(--text-primary);
     font-weight: 700;
-    transition: var(--transition);
-
-    &:focus { outline: none; border-color: var(--primary); background: var(--white); }
+    transition: var(--transition-smooth);
+    &:focus { outline: none; border-color: var(--accent); }
   }
-`;
-
-const ResetBtn = styled.button`
-  padding: 16px 24px;
-  background: var(--bg-cream);
-  color: var(--primary);
-  border: none;
-  border-radius: var(--radius-pill);
-  cursor: pointer;
-  font-weight: 800;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  transition: var(--transition);
-  &:hover { background: var(--white); border: 1px solid var(--primary); }
 `;
 
 const TableCard = styled.div`
-  background: var(--white);
+  background: var(--bg-surface);
   border-radius: var(--radius-card);
   overflow: hidden;
-  box-shadow: var(--shadow-premium);
-  border: 1px solid var(--border-soft);
+  box-shadow: var(--shadow-subtle);
+  border: 1px solid var(--border);
 `;
 
-const TableScroll = styled.div`
-  overflow-x: auto;
-`;
-
-const Table = styled.table`
+const EliteTable = styled.table`
   width: 100%;
   border-collapse: collapse;
-
-  thead th {
-    background: var(--primary);
-    padding: 24px 32px;
-    text-align: left;
-    font-size: 0.75rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--white);
-  }
-
-  tbody td {
-    padding: 24px 32px;
-    border-bottom: 1px solid var(--bg-cream);
-    color: var(--text-charcoal);
-    font-weight: 600;
-    vertical-align: middle;
-  }
-
+  thead th { padding: 24px; text-align: left; font-size: 0.72rem; font-weight: 900; color: var(--text-inverse); text-transform: uppercase; background: var(--primary); }
+  tbody td { padding: 24px; border-bottom: 1px solid var(--border); color: var(--text-primary); font-weight: 600; }
   tbody tr:last-child td { border-bottom: none; }
-  tbody tr:hover { background: var(--bg-cream); }
+  tbody tr:hover { background: var(--bg-surface-alt); }
 `;
 
 const StatusBadge = styled.span`
   padding: 6px 14px;
   border-radius: var(--radius-pill);
   font-size: 0.7rem;
-  font-weight: 800;
+  font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  background: ${p =>
-    p.$status === 'Completed' ? 'var(--bg-cream)' :
-    p.$status === 'Cancelled' ? '#fdf2f0' :
-    'var(--accent)'
-  };
-  color: ${p =>
-    p.$status === 'Completed' ? 'var(--primary)' :
-    p.$status === 'Cancelled' ? '#d46a4f' :
-    'var(--primary)'
-  };
-  border: 1px solid var(--border-soft);
-`;
-
-const SpinnerWrap = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 400px;
-`;
-
-const Spinner = styled.div`
-  width: 50px;
-  height: 50px;
-  border: 3px solid var(--bg-cream);
-  border-top-color: var(--primary);
-  border-radius: 50%;
-  animation: ${spin} 0.8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
-`;
-
-const EmptyState = styled.div`
-  text-align: center;
-  padding: 100px 24px;
-  background: var(--white);
-  border-radius: var(--radius-card);
-  border: 1px dashed var(--border-soft);
-  
-  .icon { font-size: 4rem; opacity: 0.3; margin-bottom: 24px; }
-  h3 { font-size: 1.8rem; color: var(--primary); }
-`;
-
-const ItemsList = styled.div`
-  max-width: 280px;
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  line-height: 1.5;
-  font-weight: 500;
+  background: ${p => p.$status === 'Completed' ? 'rgba(76, 175, 80, 0.1)' : p.$status === 'Cancelled' ? 'rgba(212, 106, 79, 0.1)' : 'rgba(245, 182, 17, 0.1)'};
+  color: ${p => p.$status === 'Completed' ? '#4CAF50' : p.$status === 'Cancelled' ? '#FF5252' : '#F5B611'};
+  border: 1px solid currentColor;
 `;
 
 // ===== COMPONENT =====
@@ -255,10 +161,7 @@ const SalesReport = () => {
   const [statusFilter, setStatusFilter] = useState('All');
 
   useEffect(() => {
-    api.get('/orders')
-      .then(res => setOrders(res.data.orders || []))
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    api.get('/orders').then(res => setOrders(res.data.orders || [])).catch(console.error).finally(() => setLoading(false));
   }, []);
 
   const filtered = orders.filter(o => {
@@ -269,166 +172,117 @@ const SalesReport = () => {
     return true;
   });
 
-  const totalRevenue = filtered
-    .filter(o => o.status === 'Completed')
-    .reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+  const totalRevenue = filtered.filter(o => o.status === 'Completed').reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+
+  const categorySales = filtered.filter(o => o.status === 'Completed').reduce((acc, o) => {
+    o.items?.forEach(item => {
+      const cat = item.product?.category || 'General';
+      acc[cat] = (acc[cat] || 0) + (item.price * item.quantity);
+    });
+    return acc;
+  }, {});
+
+  const barData = Object.keys(categorySales).map(cat => ({ name: cat, revenue: categorySales[cat] })).sort((a,b) => b.revenue - a.revenue);
 
   const exportPDF = () => {
     const doc = new jsPDF();
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(22);
-    doc.setTextColor(43, 57, 34); // Deep Forest
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(22); doc.setTextColor(43, 57, 34);
     doc.text('Strategic Performance Report', 14, 25);
-    
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100);
-    doc.text(`Institutional Generation Date: ${new Date().toLocaleString('en-PK')}`, 14, 34);
-    
-    doc.setFontSize(11);
-    doc.setTextColor(43, 57, 34);
-    doc.text(`Manifest Summary: ${filtered.length} Entries | Total Realized Revenue: Rs. ${totalRevenue.toLocaleString()}`, 14, 42);
-
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(100, 100, 100);
+    doc.text(`Institutional Generation Date: ${new Date().toLocaleString()}`, 14, 34);
     autoTable(doc, {
-      startY: 50,
-      head: [['TRACE ID', 'ENTITY', 'CONTACT', 'MANIFEST', 'VALUATION', 'STATUS', 'TIMESTAMP']],
-      body: filtered.map((o) => [
-        o._id.slice(-8).toUpperCase(),
-        `${o.farmer?.first_name} ${o.farmer?.last_name}`,
-        o.farmerPhone,
-        o.items?.map(item => item.product?.name).join(', ') || '—',
-        `Rs. ${o.totalAmount?.toLocaleString()}`,
-        o.status.toUpperCase(),
-        new Date(o.createdAt).toLocaleDateString('en-PK')
-      ]),
-      styles: { fontSize: 8, font: 'helvetica' },
-      headStyles: { fillColor: [43, 57, 34], textColor: [255, 255, 255] },
-      alternateRowStyles: { fillColor: [244, 233, 214] }, // bg-cream
-      margin: { top: 50 }
+      startY: 45,
+      head: [['TRACE ID', 'ENTITY', 'MANIFEST', 'VALUATION', 'STATUS', 'DATE']],
+      body: filtered.map(o => [o._id.slice(-8).toUpperCase(), `${o.farmer?.first_name} ${o.farmer?.last_name}`, o.items?.map(i => i.product?.name).join(', '), `Rs. ${o.totalAmount?.toLocaleString()}`, o.status.toUpperCase(), new Date(o.createdAt).toLocaleDateString()]),
+      headStyles: { fillColor: [43, 57, 34] },
+      alternateRowStyles: { fillColor: [245, 245, 245] }
     });
-
-    doc.save(`KisanStore-Strategic-Report-${new Date().toISOString().slice(0,10)}.pdf`);
+    doc.save("agrotek_strategic_report.pdf");
   };
 
   const exportExcel = () => {
-    const data = filtered.map((o, i) => ({
-      'Operational #': i + 1,
-      'Trace ID': o._id.toUpperCase(),
-      'Entity Name': `${o.farmer?.first_name} ${o.farmer?.last_name}`,
-      'Secure Contact': o.farmerPhone,
-      'Asset Manifest': o.items?.map(item => item.product?.name).join(', ') || '—',
-      'Valuation (Rs.)': o.totalAmount,
-      'Schedule Date': new Date(o.pickupDate).toLocaleDateString('en-PK'),
-      'Transaction Date': new Date(o.createdAt).toLocaleDateString('en-PK'),
-      'Fulfillment Status': o.status
-    }));
-
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Strategic Sales Data');
-    const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-    saveAs(new Blob([buf]), `KisanStore-Analytical-Export-${new Date().toISOString().slice(0,10)}.xlsx`);
+    const ws = XLSX.utils.json_to_sheet(filtered.map(o => ({ 'Trace ID': o._id.toUpperCase(), 'Entity': `${o.farmer?.first_name} ${o.farmer?.last_name}`, 'Valuation': o.totalAmount, 'Status': o.status, 'Date': new Date(o.createdAt).toLocaleDateString() })));
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Sales Data');
+    XLSX.writeFile(wb, "agrotek_data_export.xlsx");
   };
+
+  const COLORS = ['#2B3922', '#F5B611', '#5C7A4A', '#A88D3E', '#1A2A12'];
 
   return (
     <PageContainer>
       <Topbar>
-        <PageTitle>
-          Operational Analytics
-          <small> Institutional sales and performance tracking</small>
-        </PageTitle>
-        <BtnGroup>
-          <ExportBtn $variant="pdf" onClick={exportPDF}>📄 EXPORT STRATEGIC PDF</ExportBtn>
-          <ExportBtn onClick={exportExcel}>📈 EXPORT DATA XLSX</ExportBtn>
-        </BtnGroup>
+        <PageTitle>Operational Intelligence <small>INSTITUTIONAL METRICS & ANALYTICS</small></PageTitle>
+        <div style={{display:'flex', gap:'16px'}}>
+          <ActionBtn $variant="pdf" onClick={exportPDF}>📄 Export Strategic PDF</ActionBtn>
+          <ActionBtn onClick={exportExcel}>📈 Export Data XLSX</ActionBtn>
+        </div>
       </Topbar>
 
-      {/* Summary Cards */}
-      <StatsGrid>
+      <AnalyticsGrid>
         {[
-          {icon:'📋',label:'Total Manifests',val:filtered.length},
-          {icon:'✅',label:'Fulfillment Rate',val:filtered.filter(o=>o.status==='Completed').length},
-          {icon:'🕒',label:'Active Pipeline',val:filtered.filter(o=>o.status==='Pending').length},
-          {icon:'💰',label:'Net Revenue',val:`Rs. ${totalRevenue.toLocaleString()}`, highlight: true},
+          {i:'📋',l:'Total Manifests',v:filtered.length},
+          {i:'✅',l:'Fulfillment Count',v:filtered.filter(o=>o.status==='Completed').length},
+          {i:'🕒',l:'In-Flight Pipeline',v:filtered.filter(o=>o.status==='Pending').length},
+          {i:'💰',l:'Net Realized Revenue',v:`Rs. ${totalRevenue.toLocaleString()}`, highlight: true},
         ].map((s,i) => (
-          <StatCard key={i} $highlight={s.highlight}>
+          <MetricCard key={i} $highlight={s.highlight}>
             <div className="icon">{s.icon}</div>
-            <div className="val">{s.val}</div>
+            <div className="value">{s.val}</div>
             <div className="label">{s.label}</div>
-          </StatCard>
+          </MetricCard>
         ))}
-      </StatsGrid>
+      </AnalyticsGrid>
 
-      {/* Filters */}
-      <FilterCard>
-        <FormGroup>
-          <label>Audit Start Date</label>
-          <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
-        </FormGroup>
-        <FormGroup>
-          <label>Audit End Date</label>
-          <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} />
-        </FormGroup>
-        <FormGroup>
-          <label>Operational Scope</label>
-          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
-            <option value="All">All Transactions</option>
-            <option value="Pending">🕒 PENDING FULFILLMENT</option>
-            <option value="Completed">✅ DEPLOYED / COMPLETED</option>
-            <option value="Cancelled">❌ CANCELLED / ABORTED</option>
-          </select>
-        </FormGroup>
-        <ResetBtn onClick={() => { setDateFrom(''); setDateTo(''); setStatusFilter('All'); }}>
-          RESET AUDIT PARAMETERS
-        </ResetBtn>
-      </FilterCard>
+      {!loading && barData.length > 0 && (
+        <ChartCard>
+          <h3>Strategic Revenue Allocation (by Category)</h3>
+          <div style={{ width: '100%', height: 400 }}>
+            <ResponsiveContainer>
+              <BarChart data={barData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill:'var(--text-secondary)', fontSize:12, fontWeight:700}} height={60} interval={0} angle={-20} textAnchor="end" />
+                <YAxis axisLine={false} tickLine={false} tick={{fill:'var(--text-secondary)', fontSize:12, fontWeight:700}} tickFormatter={v => `Rs. ${v/1000}k`} />
+                <Tooltip cursor={{fill:'var(--bg-surface-alt)'}} contentStyle={{borderRadius:'12px', border:'none', boxShadow:'var(--shadow-premium)', fontWeight:900}} />
+                <Bar dataKey="revenue" radius={[10, 10, 0, 0]} barSize={50}>
+                  {barData.map((e,i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </ChartCard>
+      )}
 
-      {/* Orders Table */}
+      <FilterStrip>
+        <FormGroup><label>Audit Start Date</label><input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} /></FormGroup>
+        <FormGroup><label>Audit End Date</label><input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} /></FormGroup>
+        <FormGroup><label>Operational Scope</label><select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}><option value="All">Global Manifests</option><option value="Pending">Pending Fulfillment</option><option value="Completed">Deployed / Finalized</option><option value="Cancelled">Voided / Aborted</option></select></FormGroup>
+        <ActionBtn onClick={() => {setDateFrom(''); setDateTo(''); setStatusFilter('All');}} style={{background:'var(--bg-app)', color:'var(--text-primary)', border:'1px solid var(--border)', height:'56px'}}>Reset Parameters</ActionBtn>
+      </FilterStrip>
+
       {loading ? (
-        <SpinnerWrap><Spinner /></SpinnerWrap>
+        <div style={{display:'flex',justifyContent:'center',padding:'120px'}}><div style={{width:'60px',height:'60px',border:'5px solid var(--border)',borderTopColor:'var(--primary)',borderRadius:'50%',animation:'spin 0.8s linear infinite'}} /></div>
       ) : filtered.length === 0 ? (
-        <EmptyState>
-          <div className="icon">📊</div>
-          <h3>No audit data found</h3>
-          <p>No transactions match the specified parameters in the institutional database.</p>
-        </EmptyState>
+        <div style={{textAlign:'center', padding:'100px', background:'var(--bg-surface)', borderRadius:'var(--radius-card)', border:'1px dashed var(--border)'}}>
+          <h3 style={{color:'var(--text-secondary)'}}>No matching analytical results found.</h3>
+        </div>
       ) : (
         <TableCard>
-          <TableScroll>
-            <Table>
-              <thead>
-                <tr>
-                  <th>Trace ID & Entity</th>
-                  <th>Inventory Manifest</th>
-                  <th>Institutional Valuation</th>
-                  <th>Audit Date</th>
-                  <th>Status</th>
+          <EliteTable>
+            <thead>
+              <tr><th>Trace ID & Entity</th><th>Asset Manifest</th><th>Institutional Valuation</th><th>Audit Date</th><th>Protocol Status</th></tr>
+            </thead>
+            <tbody>
+              {filtered.map(o => (
+                <tr key={o._id}>
+                  <td><div style={{fontWeight:900}}>{o.farmer?.first_name} {o.farmer?.last_name}</div><div style={{fontSize:'0.65rem', color:'var(--text-secondary)', fontWeight:800}}>TRACE: #{o._id.slice(-8).toUpperCase()}</div></td>
+                  <td style={{fontSize:'0.85rem', color:'var(--text-secondary)', maxWidth:'300px'}}>{o.items?.map(i => i.product?.name).join(', ')}</td>
+                  <td style={{fontWeight:900}}>Rs. {o.totalAmount?.toLocaleString()}</td>
+                  <td style={{color:'var(--text-secondary)', fontSize:'0.9rem'}}>{new Date(o.createdAt).toLocaleDateString()}</td>
+                  <td><StatusBadge $status={o.status}>{o.status}</StatusBadge></td>
                 </tr>
-              </thead>
-              <tbody>
-                {filtered.map((o) => (
-                  <tr key={o._id}>
-                    <td>
-                      <div style={{fontWeight:800, color: 'var(--primary)', fontSize: '1.1rem'}}>{o.farmer?.first_name} {o.farmer?.last_name}</div>
-                      <div style={{fontSize:'0.75rem', color:'var(--text-muted)', fontWeight: 700}}>TRACE: #{o._id.slice(-8).toUpperCase()}</div>
-                    </td>
-                    <td>
-                      <ItemsList>
-                        {o.items?.map(item => item.product?.name).join(', ')}
-                      </ItemsList>
-                    </td>
-                    <td style={{fontWeight:800, color:'var(--text-charcoal)'}}>
-                      Rs. {o.totalAmount?.toLocaleString()}
-                    </td>
-                    <td style={{color:'var(--text-muted)', fontSize:'0.85rem', fontWeight: 600}}>
-                      {new Date(o.createdAt).toLocaleDateString('en-PK', {day:'numeric', month:'short', year:'numeric'})}
-                    </td>
-                    <td><StatusBadge $status={o.status}>{o.status}</StatusBadge></td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          </TableScroll>
+              ))}
+            </tbody>
+          </EliteTable>
         </TableCard>
       )}
     </PageContainer>
@@ -436,4 +290,3 @@ const SalesReport = () => {
 };
 
 export default SalesReport;
-

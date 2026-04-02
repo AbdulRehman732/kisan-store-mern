@@ -6,256 +6,181 @@ import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
 
 // ===== STYLED COMPONENTS =====
-const PageWrap = styled.div`
-  min-height: calc(100vh - 120px);
-  background: var(--bg-cream);
-  padding: 80px 24px;
+const PageContainer = styled.div`
+  padding: var(--spacing-xl);
+  animation: entrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  background: var(--bg-app);
+  min-height: 100vh;
 `;
 
-const Container = styled.div`
-  max-width: 1200px;
+const ContentWrapper = styled.div`
+  max-width: 1400px;
   margin: 0 auto;
 `;
 
-const PageTitle = styled.h1`
-  font-size: 3.5rem;
-  color: var(--primary);
-  margin-bottom: 12px;
-  text-align: left;
+const TopHeader = styled.div`
+  margin-bottom: var(--spacing-xxl);
 `;
 
-const Subtitle = styled.p`
-  color: var(--text-muted);
-  font-size: 1.1rem;
-  margin-bottom: 54px;
-  font-weight: 500;
-`;
-
-const Grid = styled.div`
-  display: grid;
-  grid-template-columns: 1.5fr 1fr;
-  gap: 48px;
-  @media (max-width: 1000px) { grid-template-columns: 1fr; }
-`;
-
-const CartPanel = styled.div`
-  background: var(--white);
-  border-radius: var(--radius-card);
-  padding: 60px 48px;
-  box-shadow: var(--shadow-premium);
-  border: 1px solid var(--border-soft);
-`;
-
-const CartItem = styled.div`
-  display: grid;
-  grid-template-columns: 120px 1fr 140px;
-  gap: 32px;
-  align-items: center;
-  padding: 32px 0;
-  border-bottom: 2px solid var(--bg-cream);
-  &:last-child { border-bottom: none; }
-  @media (max-width: 600px) { grid-template-columns: 1fr; text-align: center; }
-`;
-
-const ItemImage = styled.div`
-  width: 120px;
-  height: 120px;
-  border-radius: var(--radius-sm);
-  background: var(--bg-cream);
+const PageTitle = styled.h2`
+  font-size: 4rem;
+  color: var(--text-primary);
   display: flex;
+  flex-direction: column;
+  small { font-size: 1.1rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.7; margin-top: 8px; }
+`;
+
+const MainGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: var(--spacing-xxl);
+  @media (max-width: 1100px) { grid-template-columns: 1fr; }
+`;
+
+const DossierPanel = styled.div`
+  background: var(--bg-surface);
+  border-radius: var(--radius-card);
+  padding: var(--spacing-xl);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-subtle);
+`;
+
+const AssetRow = styled.div`
+  display: grid;
+  grid-template-columns: 140px 1fr 180px;
+  gap: var(--spacing-xl);
   align-items: center;
-  justify-content: center;
+  padding: var(--spacing-xl) 0;
+  border-bottom: 1px solid var(--border);
+  transition: var(--transition-smooth);
+  
+  &:hover { background: var(--bg-surface-alt); }
+  &:last-child { border-bottom: none; }
+  @media (max-width: 768px) { grid-template-columns: 100px 1fr; }
+`;
+
+const AssetImage = styled.div`
+  width: 140px;
+  height: 140px;
+  border-radius: var(--radius-md);
+  background: var(--bg-surface-alt);
+  border: 1px solid var(--border);
   overflow: hidden;
-  font-size: 2.5rem;
-  border: 1px solid var(--border-soft);
   img { width: 100%; height: 100%; object-fit: cover; }
 `;
 
-const ItemInfo = styled.div`
+const AssetDetails = styled.div`
+  h3 { font-size: 1.8rem; color: var(--text-primary); margin-bottom: 8px; }
+  .meta { font-size: 1rem; color: var(--text-secondary); font-weight: 700; margin-bottom: 12px; }
+  .control-btn { background: none; border: none; color: #FF5252; font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer; padding: 0; }
+`;
+
+const QuantityControl = styled.div`
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-`;
-
-const ItemName = styled.div`
-  font-size: 1.4rem;
-  font-weight: 800;
-  color: var(--primary);
-`;
-
-const ItemMeta = styled.div`
-  color: var(--text-muted);
-  font-size: 0.95rem;
-  font-weight: 600;
-`;
-
-const QtyControls = styled.div`
-  display: flex;
-  gap: 12px;
   align-items: center;
   justify-content: flex-end;
-  @media (max-width: 600px) { justify-content: center; }
+  gap: 16px;
+  
+  button {
+    width: 44px; height: 44px;
+    background: var(--bg-surface-alt);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-size: 1.2rem;
+    font-weight: 900;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    &:hover:not(:disabled) { background: var(--primary); color: white; border-color: var(--primary); }
+    &:disabled { opacity: 0.3; }
+  }
+  
+  span { font-size: 1.4rem; font-weight: 900; min-width: 40px; text-align: center; color: var(--text-primary); }
 `;
 
-const QtyBtn = styled.button`
-  width: 42px;
-  height: 42px;
-  border: 1px solid var(--border-soft);
-  background: var(--white);
-  color: var(--primary);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  font-size: 1.2rem;
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: var(--transition);
-  &:hover { background: var(--bg-cream); }
-  &:disabled { opacity: 0.3; }
-`;
-
-const QtyValue = styled.div`
-  min-width: 32px;
-  text-align: center;
-  font-weight: 900;
-  font-size: 1.1rem;
-  color: var(--text-charcoal);
-`;
-
-const RemoveBtn = styled.button`
-  border: none;
-  background: none;
-  color: #d46a4f;
-  font-weight: 800;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  cursor: pointer;
-  margin-top: 12px;
-  padding: 0;
-  text-align: left;
-  &:hover { text-decoration: underline; }
-`;
-
-const SummaryBox = styled.div`
-  background: var(--primary);
+const SummaryPanel = styled.div`
+  background: var(--bg-surface);
   border-radius: var(--radius-card);
-  padding: 60px 48px;
-  color: var(--white);
+  padding: var(--spacing-xl);
+  border: 1px solid var(--border);
   box-shadow: var(--shadow-premium);
-  align-self: flex-start;
   position: sticky;
-  top: 120px;
+  top: 100px;
+  height: fit-content;
+
+  &::before { content:''; position:absolute; top:0; left:0; right:0; height:6px; background: var(--primary); border-radius: 4px 4px 0 0; }
 `;
 
 const SummaryRow = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   font-size: 1rem;
-  font-weight: 600;
-  opacity: 0.9;
-`;
-
-const TotalRow = styled(SummaryRow)`
-  font-size: 1.8rem;
   font-weight: 800;
-  opacity: 1;
-  padding-top: 24px;
-  border-top: 2px solid rgba(255,255,255,0.1);
-  margin-top: 24px;
-  color: var(--accent);
+  color: var(--text-secondary);
+  
+  &.total {
+    font-size: 2.2rem;
+    color: var(--text-primary);
+    border-top: 1px solid var(--border);
+    padding-top: 32px;
+    margin-top: 32px;
+    span:last-child { color: var(--accent); }
+  }
 `;
 
-const Field = styled.div`
-  margin-bottom: 24px;
-`;
-
-const Label = styled.label`
-  display: block;
-  font-size: 0.75rem;
-  font-weight: 800;
-  color: var(--accent);
-  margin-bottom: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-`;
-
-const Input = styled.input`
-  width: 100%;
-  padding: 16px 20px;
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: var(--radius-sm);
-  background: rgba(255,255,255,0.05);
-  color: var(--white);
-  font-family: inherit;
-  font-size: 1rem;
-  transition: var(--transition);
-  &:focus { outline: none; background: rgba(255,255,255,0.1); border-color: var(--accent); }
-  &::placeholder { color: rgba(255,255,255,0.4); }
-`;
-
-const Textarea = styled.textarea`
-  width: 100%;
-  min-height: 100px;
-  padding: 16px 20px;
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: var(--radius-sm);
-  background: rgba(255,255,255,0.05);
-  color: var(--white);
-  font-family: inherit;
-  font-size: 1rem;
-  resize: vertical;
-  &::placeholder { color: rgba(255,255,255,0.4); }
+const FormGroup = styled.div`
+  margin-top: 32px;
+  label { display: block; font-size: 0.75rem; font-weight: 900; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 10px; letter-spacing: 0.1em; }
+  input, textarea {
+    width: 100%;
+    padding: 18px;
+    background: var(--bg-surface-alt);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    color: var(--text-primary);
+    font-weight: 700;
+    transition: var(--transition-smooth);
+    &:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
+  }
 `;
 
 const CheckoutBtn = styled.button`
   width: 100%;
-  padding: 24px;
-  border: none;
+  padding: 22px;
+  background: var(--primary);
+  color: var(--text-inverse);
   border-radius: var(--radius-pill);
-  background: var(--accent);
-  color: var(--primary);
   font-weight: 900;
   font-size: 1rem;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  letter-spacing: 0.15em;
-  cursor: pointer;
-  transition: var(--transition);
   margin-top: 32px;
-  &:hover { background: var(--white); transform: translateY(-3px); }
-  &:disabled { opacity: 0.5; }
+  box-shadow: 0 15px 40px rgba(76, 175, 80, 0.2);
+  cursor: pointer;
+  
+  &:hover:not(:disabled) { background: var(--accent); color: var(--text-inverse); transform: translateY(-3px); box-shadow: var(--shadow-premium); }
+  &:disabled { opacity: 0.4; }
 `;
 
 const EmptyState = styled.div`
-  background: var(--white);
-  border-radius: var(--radius-card);
-  padding: 100px 48px;
   text-align: center;
-  box-shadow: var(--shadow-premium);
-  span { font-size: 4rem; display: block; margin-bottom: 24px; }
-  h3 { font-size: 1.8rem; color: var(--primary); margin-bottom: 12px; }
-  p { color: var(--text-muted); font-size: 1.1rem; margin-bottom: 32px; }
+  padding: 120px 40px;
+  background: var(--bg-surface);
+  border-radius: var(--radius-card);
+  border: 1px dashed var(--border);
+  
+  .icon { font-size: 6rem; margin-bottom: 32px; display: block; }
+  h3 { font-size: 2.5rem; color: var(--text-primary); margin-bottom: 12px; }
+  p { color: var(--text-secondary); font-weight: 700; margin-bottom: 40px; }
 `;
 
-const EmptyButton = styled(Link)`
-  display: inline-flex;
-  padding: 20px 40px;
-  background: var(--primary);
-  color: var(--white);
-  border-radius: var(--radius-pill);
-  font-weight: 800;
-  text-decoration: none;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-`;
-
+// ===== COMPONENT =====
 const Cart = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { cart, totalAmount, updateQuantity, removeFromCart, clearCart } = useCart();
+  const { cart, totalAmount, taxTotal, grandTotal, updateQuantity, removeFromCart, clearCart } = useCart();
   const [pickupDate, setPickupDate] = useState("");
   const [phone, setPhone] = useState("");
   const [notes, setNotes] = useState("");
@@ -267,94 +192,83 @@ const Cart = () => {
   const handleCheckout = async () => {
     if (!cart.length) return;
     if (!user) return navigate("/login");
-    if (!pickupDate) return setMessage("Select a valid pickup date.");
-    if (!phone.trim()) return setMessage("Contact phone is required.");
+    if (!pickupDate) return setMessage("Authorized deployment date required.");
+    if (!phone.trim()) return setMessage("Tactical contact reference required.");
 
     setLoading(true); setMessage("");
     try {
       await api.post("/orders", {
-        items: cart.map((i) => ({ product: i._id, quantity: i.quantity, price: i.price })),
+        items: cart.map(i => ({ product: i._id, quantity: i.quantity, price: i.price, taxAmount: i.taxAmount || 0 })),
         pickupDate, farmerPhone: phone, notes
       });
       clearCart(); navigate("/my-orders");
-    } catch (err) { setMessage(err.response?.data?.message || "Internal server error."); } finally { setLoading(false); }
+    } catch (err) { setMessage(err.response?.data?.message || "Operational Protocol Failure."); } 
+    finally { setLoading(false); }
   };
 
   if (!cart.length) {
     return (
-      <PageWrap>
-        <Container>
-          <PageTitle>Cart Overview</PageTitle>
+      <PageContainer>
+        <ContentWrapper>
           <EmptyState>
-            <span>🛒</span>
-            <h3>Inventory is empty</h3>
-            <p>Your procurement list is currently vacant. Browse our catalog to add items.</p>
-            <EmptyButton to="/products">Explore Products</EmptyButton>
+            <span className="icon">📦</span>
+            <h3>Inventory Dossier Vacant</h3>
+            <p>Your current procurement list is neutral. Access the strategic catalog to enlist agricultural assets.</p>
+            <CheckoutBtn as={Link} to="/products" style={{textDecoration:'none', display:'inline-block', width:'auto'}}>ENTER CATALOG</CheckoutBtn>
           </EmptyState>
-        </Container>
-      </PageWrap>
+        </ContentWrapper>
+      </PageContainer>
     );
   }
 
   return (
-    <PageWrap>
-      <Container>
-        <PageTitle>Procurement List</PageTitle>
-        <Subtitle>Review your selected assets before final authorization.</Subtitle>
+    <PageContainer>
+      <ContentWrapper>
+        <TopHeader>
+          <PageTitle>Procurement Dossier <small>STRATEGIC ASSET ALLOCATION LOG</small></PageTitle>
+        </TopHeader>
 
-        <Grid>
-          <CartPanel>
-            {cart.map((item) => (
-              <CartItem key={item._id}>
-                <ItemImage>
-                  {item.image?.[0] ? (
-                    <img src={`http://localhost:5000${item.image[0]}`} alt={item.name} />
-                  ) : "📦"}
-                </ItemImage>
-                <ItemInfo>
-                  <ItemName>{item.name}</ItemName>
-                  <ItemMeta>Rs. {item.price.toLocaleString()} / {item.unit}</ItemMeta>
-                  <ItemMeta style={{ color: item.stock < 10 ? '#d46a4f' : 'var(--primary)' }}>
-                    {item.stock > 0 ? `${item.stock} in reserve` : "DEPLETED"}
-                  </ItemMeta>
-                  <RemoveBtn type="button" onClick={() => removeFromCart(item._id)}>REMOVE FROM LIST</RemoveBtn>
-                </ItemInfo>
-                <QtyControls>
-                  <QtyBtn type="button" onClick={() => updateQuantity(item._id, item.quantity - 1)} disabled={item.quantity <= 1}>−</QtyBtn>
-                  <QtyValue>{item.quantity}</QtyValue>
-                  <QtyBtn type="button" onClick={() => updateQuantity(item._id, item.quantity + 1)} disabled={item.quantity >= item.stock}>+</QtyBtn>
-                </QtyControls>
-              </CartItem>
+        <MainGrid>
+          <DossierPanel>
+            {cart.map(item => (
+              <AssetRow key={item._id}>
+                <AssetImage>{item.image?.[0] ? <img src={`http://localhost:5000${item.image[0]}`} alt={item.name} /> : "📦"}</AssetImage>
+                <AssetDetails>
+                  <h3>{item.name}</h3>
+                  <div className="meta">Valuation: Rs. {item.price.toLocaleString()} / {item.unit}</div>
+                  <div style={{color: item.stock < 10 ? '#FF5252' : 'var(--primary)', fontStyle:'italic', fontWeight:900, fontSize:'0.8rem'}}>Strategic Reserve: {item.stock} Units</div>
+                  <button className="control-btn" onClick={() => removeFromCart(item._id)}>Discard from Log</button>
+                </AssetDetails>
+                <QuantityControl>
+                  <button onClick={() => updateQuantity(item._id, item.quantity - 1)} disabled={item.quantity <= 1}>−</button>
+                  <span>{item.quantity}</span>
+                  <button onClick={() => updateQuantity(item._id, item.quantity + 1)} disabled={item.quantity >= item.stock}>+</button>
+                </QuantityControl>
+              </AssetRow>
             ))}
-          </CartPanel>
+          </DossierPanel>
 
-          <SummaryBox>
-            <h3 style={{ fontSize: "1.8rem", color: "var(--accent)", marginBottom: "40px" }}>Order Specification</h3>
-            <SummaryRow><div>Line Items</div><div>{cart.length} units</div></SummaryRow>
-            <SummaryRow><div>Logistics Subtotal</div><div>Rs. {totalAmount.toLocaleString()}</div></SummaryRow>
-            <Field>
-              <Label>Designated Pickup Date</Label>
-              <Input type="date" value={pickupDate} onChange={(e) => setPickupDate(e.target.value)} />
-            </Field>
-            <Field>
-              <Label>Operational Contact</Label>
-              <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="0300-1234567" />
-            </Field>
-            <Field>
-              <Label>Procurement Notes</Label>
-              <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Special handling or location details..." />
-            </Field>
-            <TotalRow><div>Authorized Total</div><div>Rs. {totalAmount.toLocaleString()}</div></TotalRow>
-            {message && <p style={{ color: "var(--accent)", fontWeight: 800, marginTop: "24px", fontSize: "0.9rem" }}>⚠ {message}</p>}
-            <CheckoutBtn type="button" disabled={loading} onClick={handleCheckout}>
-              {loading ? "AUTHORIZING..." : "CONFIRM PROCUREMENT"}
+          <SummaryPanel>
+            <h3 style={{fontSize:'1.8rem', color:'var(--text-primary)', marginBottom:'32px'}}>Institutional Audit</h3>
+            <SummaryRow><span>Primary Assets</span><span>{cart.length} Classification(s)</span></SummaryRow>
+            <SummaryRow><span>Gross Valuation</span><span>Rs. {totalAmount.toLocaleString()}</span></SummaryRow>
+            {taxTotal > 0 && <SummaryRow><span>Institutional Levy</span><span>Rs. {taxTotal.toLocaleString()}</span></SummaryRow>}
+            
+            <FormGroup><label>Designated Deployment Date</label><input type="date" value={pickupDate} onChange={e => setPickupDate(e.target.value)} /></FormGroup>
+            <FormGroup><label>Operational Reference (Contact)</label><input type="tel" value={phone} onChange={e => setPhone(e.target.value)} /></FormGroup>
+            <FormGroup><label>Logistics Remark</label><textarea rows={3} value={notes} onChange={e => setNotes(e.target.value)} /></FormGroup>
+
+            <SummaryRow className="total"><span>Final Authorized magnitude</span><span>Rs. {grandTotal.toLocaleString()}</span></SummaryRow>
+            {message && <div style={{background:'rgba(212, 106, 79, 0.1)', color:'#FF5252', padding:'16px', borderRadius:'12px', fontWeight:900, fontSize:'0.8rem', marginTop:'24px'}}>⚠ {message}</div>}
+            
+            <CheckoutBtn onClick={handleCheckout} disabled={loading}>
+              {loading ? "AUTHORIZING..." : "Confirm Strategic Mobilization"}
             </CheckoutBtn>
-          </SummaryBox>
-        </Grid>
-      </Container>
-    </PageWrap>
+          </SummaryPanel>
+        </MainGrid>
+      </ContentWrapper>
+    </PageContainer>
   );
 };
 
 export default Cart;
-
