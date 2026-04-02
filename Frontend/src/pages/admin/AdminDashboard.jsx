@@ -191,17 +191,17 @@ const AdminDashboard = () => {
     <PageContainer>
       <Header>
         <Title>
-          Institutional Analytics
-          <small>Nexus Command Intelligence — Baseline Audit</small>
+          Dashboard Overview
+          <small>System Performance & Analytics</small>
         </Title>
       </Header>
 
       <StatsGrid>
         {[
-          { i: '👥', l: 'Stakeholders', v: stats?.totalFarmers || 0 },
-          { i: '📦', l: 'Authorized Orders', v: stats?.totalOrders || 0 },
-          { i: '💰', l: 'Global Revenue', v: `Rs.${(stats?.totalRevenue || 0).toLocaleString()}` },
-          { i: '📉', l: 'System Liability', v: `Rs.${(stats?.totalDebt || 0).toLocaleString()}` },
+          { i: '👥', l: 'Total Customers', v: stats?.totalFarmers || 0 },
+          { i: '📦', l: 'Total Orders', v: stats?.totalOrders || 0 },
+          { i: '💰', l: 'Total Revenue', v: `Rs.${(stats?.totalRevenue || 0).toLocaleString()}` },
+          { i: '📉', l: 'Customer Owed Debt', v: `Rs.${(stats?.totalDebt || 0).toLocaleString()}` },
         ].map((s, idx) => (
           <StatCard key={idx}>
             <IconBox>{s.i}</IconBox>
@@ -213,7 +213,7 @@ const AdminDashboard = () => {
 
       <SectionGrid>
         <DataCard>
-          <CardHeader><h3>Operational Velocity</h3></CardHeader>
+          <CardHeader><h3>Monthly Order Volume</h3></CardHeader>
           <ResponsiveContainer width="100%" height={320}>
             <BarChart data={monthlyOrders || []}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
@@ -252,17 +252,17 @@ const AdminDashboard = () => {
 
       <DataCard style={{marginBottom: 'var(--spacing-xl)'}}>
         <CardHeader>
-          <h3>Recent Procurement Logs</h3>
-          <button onClick={() => navigate('/admin/orders')} style={{background:'var(--bg-surface-alt)', border:'1px solid var(--border)', color:'var(--text-primary)', padding:'10px 24px', borderRadius:'var(--radius-pill)', fontWeight:900, fontSize:'0.75rem', cursor:'pointer'}}>AUDIT ALL</button>
+          <h3>Recent Orders</h3>
+          <button onClick={() => navigate('/admin/orders')} style={{background:'var(--bg-surface-alt)', border:'1px solid var(--border)', color:'var(--text-primary)', padding:'10px 24px', borderRadius:'var(--radius-pill)', fontWeight:900, fontSize:'0.75rem', cursor:'pointer'}}>VIEW ALL</button>
         </CardHeader>
         <div style={{overflowX:'auto'}}>
           <EliteTable>
             <thead>
               <tr>
-                <th>Stakeholder Entity</th>
-                <th>Magnitude</th>
-                <th>Financial Valuation</th>
-                <th>Auth Date</th>
+                <th>Customer Name</th>
+                <th>Items Qty</th>
+                <th>Total Value</th>
+                <th>Date</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -283,17 +283,17 @@ const AdminDashboard = () => {
 
       <DataCard>
         <CardHeader>
-          <h3>Nexus System Audit</h3>
-          <Lab>Latest Security Events</Lab>
+          <h3>System Audit Logs</h3>
+          <Lab>Recent Staff Actions</Lab>
         </CardHeader>
         <div style={{overflowX:'auto'}}>
           <EliteTable>
             <thead>
               <tr>
-                <th>Protocol Action</th>
-                <th>Authorized Agent</th>
-                <th>Resource Target</th>
-                <th>Timestamp</th>
+                <th>Action Taken</th>
+                <th>Performed By</th>
+                <th>Affected Resource</th>
+                <th>Time</th>
               </tr>
             </thead>
             <tbody>

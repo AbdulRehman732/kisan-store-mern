@@ -205,18 +205,18 @@ const MenuBtn = styled.button`
 
 // ===== COMPONENT =====
 const navLinks = [
-  { to: '/admin/dashboard', icon: '📊', label: 'Command Hub' },
+  { to: '/admin/dashboard', icon: '📊', label: 'Dashboard' },
   { to: '/admin/pos', icon: '🏪', label: 'Direct POS' },
-  { to: '/admin/products', icon: '📦', label: 'Inventory Logic' },
-  { to: '/admin/orders', icon: '📜', label: 'Procurement Logs' },
-  { to: '/admin/farmers', icon: '👥', label: 'Stakeholders' },
+  { to: '/admin/products', icon: '📦', label: 'Inventory' },
+  { to: '/admin/orders', icon: '📜', label: 'Orders' },
+  { to: '/admin/farmers', icon: '👥', label: 'Farmers / Users' },
   { to: '/admin/credit', icon: '📉', label: 'Credit Registry' },
-  { to: '/admin/accounts', icon: '🏛️', label: 'Treasury' },
-  { to: '/admin/expenses', icon: '💸', label: 'Internal Burn' },
-  { to: '/admin/finances', icon: '🏦', label: 'Global Ledger' },
-  { to: '/admin/staff', icon: '🛡️', label: 'Executive Team' },
-  { to: '/admin/reviews', icon: '💬', label: 'Feedback Loop' },
-  { to: '/admin/settings', icon: '⚙️', label: 'Nexus Config' },
+  { to: '/admin/accounts', icon: '🏛️', label: 'Accounts' },
+  { to: '/admin/expenses', icon: '💸', label: 'Expenses' },
+  { to: '/admin/finances', icon: '🏦', label: 'Transfers' },
+  { to: '/admin/staff', icon: '🛡️', label: 'Staff' },
+  { to: '/admin/reviews', icon: '💬', label: 'Reviews' },
+  { to: '/admin/settings', icon: '⚙️', label: 'Settings' },
 ];
 
 const AdminLayout = () => {
@@ -257,10 +257,10 @@ const AdminLayout = () => {
 
         <SidebarFooter>
           <AdminInfo>
-            <strong>Agent {user?.first_name}</strong>
+            <strong>{user?.first_name}</strong>
             {user?.email}
           </AdminInfo>
-          <LogoutBtn onClick={handleLogout}>Terminate Session</LogoutBtn>
+          <LogoutBtn onClick={handleLogout}>Logout</LogoutBtn>
         </SidebarFooter>
       </Sidebar>
 
@@ -271,7 +271,7 @@ const AdminLayout = () => {
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="3"><path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round"/></svg>
             </MenuBtn>
             <SearchTrigger>
-              🔍 Search institutional data...
+              🔍 Search data...
             </SearchTrigger>
           </div>
           

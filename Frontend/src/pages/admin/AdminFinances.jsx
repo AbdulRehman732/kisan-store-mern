@@ -139,7 +139,7 @@ const AdminFinances = () => {
     setProcessing(true);
     try {
       await api.post('/accounts/transfer', transferForm);
-      alert('Institutional Transfer Authorized.');
+      alert('Transfer Authorized.');
       setTransferForm({ fromAccountId:'', toAccountId:'', amount:'', date:'', note:'' });
       api.get('/accounts').then(r => setAccounts(r.data.accounts || [])).catch(()=>{});
     } catch (err) { alert(err.response?.data?.message || 'Transfer Protocol Failure.'); }
@@ -152,7 +152,7 @@ const AdminFinances = () => {
     try {
       const payload = { ...withdrawForm, items: withdrawalItems.filter(i => i.product && i.quantity > 0) };
       await api.post('/accounts/withdraw', payload);
-      alert('Internal Withdrawal Authorized.');
+      alert('Expense Recorded.');
       setWithdrawForm({ type:'Personal', amount:0, accountId:'', items:[], note:'', date:'' });
       setWithdrawalItems([{ product: '', quantity: 1 }]);
       api.get('/accounts').then(r => setAccounts(r.data.accounts || [])).catch(()=>{});
@@ -163,28 +163,28 @@ const AdminFinances = () => {
   return (
     <PageContainer>
       <Topbar>
-        <PageTitle>Treasury Operations <small>INTERNAL CAPITAL CONTROLS</small></PageTitle>
+        <PageTitle>Transfers <small>Account Management</small></PageTitle>
       </Topbar>
 
       <FinanceGrid>
         <EliteCard>
           <TabList>
-            <Tab $active={tab === 'Transfer'} onClick={() => setTab('Transfer')}>Inter-Ledger Transfer</Tab>
-            <Tab $active={tab === 'Withdrawal'} onClick={() => setTab('Withdrawal')}>Internal Capital Usage</Tab>
+            <Tab $active={tab === 'Transfer'} onClick={() => setTab('Transfer')}>Transfer Funds</Tab>
+            <Tab $active={tab === 'Withdrawal'} onClick={() => setTab('Withdrawal')}>Record Expense</Tab>
           </TabList>
 
           {tab === 'Transfer' ? (
             <form onSubmit={handleTransfer}>
               <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'24px'}}>
                 <FormGroup>
-                  <label>Source Ledger</label>
+                  <label>From Account</label>
                   <select value={transferForm.fromAccountId} onChange={e => setTransferForm({...transferForm, fromAccountId: e.target.value})}>
                     <option value="">-- Select Origin --</option>
                     {accounts.map(a => <option key={a._id} value={a._id}>{a.name} (AVAIL: {a.balance.toLocaleString()})</option>)}
                   </select>
                 </FormGroup>
                 <FormGroup>
-                  <label>Target Ledger</label>
+                  <label>To Account</label>
                   <select value={transferForm.toAccountId} onChange={e => setTransferForm({...transferForm, toAccountId: e.target.value})}>
                     <option value="">-- Select Destination --</option>
                     {accounts.map(a => <option key={a._id} value={a._id}>{a.name} (AVAIL: {a.balance.toLocaleString()})</option>)}
@@ -193,7 +193,7 @@ const AdminFinances = () => {
               </div>
               <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'24px'}}>
                 <FormGroup>
-                  <label>Transfer Magnitude (Rs.)</label>
+                  <label>Transfer Amount (Rs.)</label>
                   <input type="number" min="1" value={transferForm.amount} onChange={e => setTransferForm({...transferForm, amount: e.target.value})} placeholder="0.00" />
                 </FormGroup>
                 <FormGroup>
@@ -202,24 +202,24 @@ const AdminFinances = () => {
                 </FormGroup>
               </div>
               <FormGroup>
-                <label>Institutional Memo / Audit Reference</label>
-                <textarea rows={3} value={transferForm.note} onChange={e => setTransferForm({...transferForm, note: e.target.value})} placeholder="State the operational justification for this movement..." />
+                <label>Transfer Note / Reference</label>
+                <textarea rows={3} value={transferForm.note} onChange={e => setTransferForm({...transferForm, note: e.target.value})} placeholder="Reason for this transfer..." />
               </FormGroup>
-              <ActionBtn disabled={processing} type="submit">{processing ? 'Processing Authorization...' : 'Authorize Global Transfer'}</ActionBtn>
+              <ActionBtn disabled={processing} type="submit">{processing ? 'Processing...' : 'Authorize Transfer'}</ActionBtn>
             </form>
           ) : (
             <form onSubmit={handleWithdraw}>
               <FormGroup>
-                <label>Operational Categorization</label>
+                <label>Expense Category</label>
                 <select value={withdrawForm.type} onChange={e => setWithdrawForm({...withdrawForm, type: e.target.value})}>
-                  <option value="Personal">Director Personal Disbursement</option>
-                  <option value="Charity">Institutional Philanthropy / Zakat</option>
-                  <option value="Office">HQ Operational Overheads</option>
+                  <option value="Personal">Personal Use</option>
+                  <option value="Charity">Charity / Zakat</option>
+                  <option value="Office">Office / Operation</option>
                 </select>
               </FormGroup>
               <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'24px'}}>
                 <FormGroup>
-                  <label>Liquid Capital Withdrawal (Rs.)</label>
+                  <label>Amount (Rs.)</label>
                   <input type="number" value={withdrawForm.amount} onChange={e => setWithdrawForm({...withdrawForm, amount: e.target.value})} placeholder="0.00" />
                 </FormGroup>
                 {Number(withdrawForm.amount) > 0 && (
@@ -234,7 +234,7 @@ const AdminFinances = () => {
               </div>
               
               <FormGroup>
-                <label>Physical Asset Mobilization (Supply Withdrawal)</label>
+                <label>Inventory Item Withdrawn (If Any)</label>
                 {withdrawalItems.map((wi, idx) => (
                   <div key={idx} style={{display:'flex', gap:'12px', marginBottom:'12px'}}>
                     <select style={{flex:3}} value={wi.product} onChange={e => { const n = [...withdrawalItems]; n[idx].product = e.target.value; setWithdrawalItems(n); }}>
@@ -250,29 +250,27 @@ const AdminFinances = () => {
               </FormGroup>
 
               <FormGroup>
-                <label>Tactical Note</label>
-                <textarea rows={3} value={withdrawForm.note} onChange={e => setWithdrawForm({...withdrawForm, note: e.target.value})} placeholder="Internal justification for internal capital consumption..." />
+                <label>Expense Note</label>
+                <textarea rows={3} value={withdrawForm.note} onChange={e => setWithdrawForm({...withdrawForm, note: e.target.value})} placeholder="Reason for this expense..." />
               </FormGroup>
-              <ActionBtn disabled={processing} type="submit">{processing ? 'Recording Protocol...' : 'Authorize Internal Withdrawal'}</ActionBtn>
+              <ActionBtn disabled={processing} type="submit">{processing ? 'Processing...' : 'Record Expense'}</ActionBtn>
             </form>
           )}
         </EliteCard>
 
         <div style={{display:'flex', flexDirection:'column', gap:'var(--spacing-xl)'}}>
           <EliteCard>
-            <h3 style={{fontSize:'1.5rem', marginBottom:'24px', color:'var(--text-primary)'}}>Audit Governance</h3>
+            <h3 style={{fontSize:'1.5rem', marginBottom:'24px', color:'var(--text-primary)'}}>Account Balances</h3>
             <StatusBox>
-              <h4>Operational Visibility</h4>
+              <h4>Visibility</h4>
               <p>
-                All inter-ledger movements and internal capital usages are subject to automated 
-                recursive audits. Ensure all tactical notes contain verifiable operational 
-                justifications for future compliance reviews.
+                All account transfers and internal expenses are strictly logged. Ensure you provide accurate notes for future accounting reviews.
               </p>
             </StatusBox>
           </EliteCard>
           
           <EliteCard style={{background:'var(--bg-surface-alt)'}}>
-            <h4 style={{fontSize:'0.8rem', fontWeight:900, color:'var(--text-secondary)', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'16px'}}>Capital Balance Index</h4>
+            <h4 style={{fontSize:'0.8rem', fontWeight:900, color:'var(--text-secondary)', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'16px'}}>Current Balances</h4>
             {accounts.map(a => (
               <div key={a._id} style={{display:'flex', justifyContent:'space-between', padding:'16px 0', borderBottom:'1px solid var(--border)'}}>
                 <span style={{fontWeight:800}}>{a.name}</span>

@@ -244,7 +244,7 @@ const AdminOrders = () => {
   return (
     <PageContainer>
       <Topbar>
-        <PageTitle>Procurement Logs <small>Operational Fulfillment & Logistics Control</small></PageTitle>
+        <PageTitle>Orders <small>Customer Fulfillment & Logistics</small></PageTitle>
         <div style={{display:'flex', gap:'16px'}}>
           <ActionBtn onClick={() => generateOrderReport({ orders })}>📤 Bulk Report Export</ActionBtn>
           <CountBadge>{totalRecords} ACTIVE RECORDS</CountBadge>
@@ -252,12 +252,12 @@ const AdminOrders = () => {
       </Topbar>
 
       <FilterStrip>
-        <SearchInput placeholder="Filter by ID, entity or tactical contact..." value={search} onChange={e => setSearch(e.target.value)} />
+        <SearchInput placeholder="Filter by ID, name or contact..." value={search} onChange={e => setSearch(e.target.value)} />
         <FilterSelect value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
           <option value="All">All Statuses</option>
           <option value="Pending">🕒 Pending</option>
-          <option value="Completed">✅ FULFILLED</option>
-          <option value="Cancelled">❌ VOIDED</option>
+          <option value="Completed">✅ COMPLETED</option>
+          <option value="Cancelled">❌ CANCELLED</option>
         </FilterSelect>
         <div style={{display:'flex', gap:'12px', alignItems:'center'}}>
           <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={{background:'var(--bg-surface)', border:'1px solid var(--border)', padding:'10px', borderRadius:'8px', color:'var(--text-primary)'}} />
@@ -277,7 +277,7 @@ const AdminOrders = () => {
         <TableCard>
           <EliteTable>
             <thead>
-              <tr><th>Ref ID</th><th>Stakeholder</th><th>Asset Manifest</th><th>Financial Status</th><th>Protocol Phase</th><th>Logistics</th><th>Operations</th></tr>
+              <tr><th>Order ID</th><th>Customer</th><th>Products</th><th>Financial Status</th><th>Status</th><th>Pickup Date</th><th>Actions</th></tr>
             </thead>
             <tbody>
               {orders.map(o => (
@@ -305,8 +305,8 @@ const AdminOrders = () => {
                       <ActionBtn $accent onClick={() => { setPayTarget(o); api.get('/accounts').then(r => setAccounts(r.data.accounts || [])); }}>Pay</ActionBtn>
                       <select style={{padding:'8px', borderRadius:'var(--radius-pill)', background:'var(--bg-surface-alt)', border:'1px solid var(--border)', fontSize:'0.7rem', fontWeight:900}} value={o.status} onChange={e => handleStatusUpdate(o._id, e.target.value)}>
                         <option value="Pending">Pending</option>
-                        <option value="Completed">FULFILLED</option>
-                        <option value="Cancelled">VOIDED</option>
+                        <option value="Completed">COMPLETED</option>
+                        <option value="Cancelled">CANCELLED</option>
                       </select>
                     </div>
                   </td>
@@ -328,15 +328,15 @@ const AdminOrders = () => {
       {payTarget && (
         <ModalOverlay onClick={() => setPayTarget(null)}>
           <ModalCard onClick={e => e.stopPropagation()}>
-            <h3 style={{fontSize:'2.2rem', marginBottom:'32px'}}>Execute Strategic Settlement</h3>
+            <h3 style={{fontSize:'2.2rem', marginBottom:'32px'}}>Record Payment</h3>
             <form onSubmit={handleRecordPayment}>
-              <FormGroup><label>Monetary Magnitude (Rs.)</label><input type="number" required value={payForm.amount} onChange={e => setPayForm({...payForm, amount: e.target.value})} /></FormGroup>
-              <FormGroup><label>Settlement Method</label><select value={payForm.method} onChange={e => setPayForm({...payForm, method: e.target.value})}><option value="Cash">In-Hand Cash</option><option value="Bank Transfer">Institutional Bank Transfer</option><option value="Credit">Stakeholder Credit Line</option></select></FormGroup>
-              <FormGroup><label>Ledger Allocation</label><select value={payForm.accountId} onChange={e => setPayForm({...payForm, accountId: e.target.value})}><option value="">-- Manual Journal Entry --</option>{accounts.map(a => <option key={a._id} value={a._id}>{a.name} (AVAIL: {a.balance.toLocaleString()})</option>)}</select></FormGroup>
-              <FormGroup><label>Audit Note</label><textarea rows={3} value={payForm.note} onChange={e => setPayForm({...payForm, note: e.target.value})} /></FormGroup>
+              <FormGroup><label>Payment Amount (Rs.)</label><input type="number" required value={payForm.amount} onChange={e => setPayForm({...payForm, amount: e.target.value})} /></FormGroup>
+              <FormGroup><label>Payment Method</label><select value={payForm.method} onChange={e => setPayForm({...payForm, method: e.target.value})}><option value="Cash">Cash</option><option value="Bank Transfer">Bank Transfer</option><option value="Credit">Store Credit</option></select></FormGroup>
+              <FormGroup><label>Deposit Account</label><select value={payForm.accountId} onChange={e => setPayForm({...payForm, accountId: e.target.value})}><option value="">-- Receive Cash --</option>{accounts.map(a => <option key={a._id} value={a._id}>{a.name} (Balance: {a.balance.toLocaleString()})</option>)}</select></FormGroup>
+              <FormGroup><label>Payment Note</label><textarea rows={3} value={payForm.note} onChange={e => setPayForm({...payForm, note: e.target.value})} /></FormGroup>
               <div style={{display:'flex', gap:'16px', marginTop:'32px'}}>
-                <ActionBtn type="button" onClick={() => setPayTarget(null)} style={{flex:1}}>Abort</ActionBtn>
-                <ActionBtn type="submit" disabled={paying} $accent style={{flex:1}}>{paying ? 'COMMITTING...' : 'Authorize Strategic Settlement'}</ActionBtn>
+                <ActionBtn type="button" onClick={() => setPayTarget(null)} style={{flex:1}}>Cancel</ActionBtn>
+                <ActionBtn type="submit" disabled={paying} $accent style={{flex:1}}>{paying ? 'Processing...' : 'Confirm Payment'}</ActionBtn>
               </div>
             </form>
           </ModalCard>

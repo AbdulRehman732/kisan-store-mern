@@ -221,15 +221,15 @@ const AdminExpenses = () => {
   return (
     <PageContainer>
       <Topbar>
-        <PageTitle>Operational Ledger <small>SYSTEM-WIDE OUTGOING DISBURSEMENTS</small></PageTitle>
-        <ActionBtn onClick={() => { setForm(emptyForm); setIsEditing(false); setShowModal(true); }}>+ Record Disbursement</ActionBtn>
+        <PageTitle>Expenses <small>Business Expenditures</small></PageTitle>
+        <ActionBtn onClick={() => { setForm(emptyForm); setIsEditing(false); setShowModal(true); }}>+ Record Expense</ActionBtn>
       </Topbar>
 
       <MetricsGrid>
-        <MetricCard $danger><div className="label">Gross Expenditure</div><div className="value">Rs. {totalSpent.toLocaleString()}</div></MetricCard>
-        <MetricCard><div className="label">Current Month Utilization</div><div className="value">Rs. {thisMonth.toLocaleString()}</div></MetricCard>
-        <MetricCard><div className="label">Total Ledger Entries</div><div className="value">{expenses.length} Logged</div></MetricCard>
-        {topCat && <MetricCard><div className="label">Highest Expense Vector</div><div className="value" style={{fontSize:'1.3rem'}}>{topCat[0]}</div><div className="sub">Rs. {topCat[1].toLocaleString()}</div></MetricCard>}
+        <MetricCard $danger><div className="label">Total Expenses</div><div className="value">Rs. {totalSpent.toLocaleString()}</div></MetricCard>
+        <MetricCard><div className="label">This Month</div><div className="value">Rs. {thisMonth.toLocaleString()}</div></MetricCard>
+        <MetricCard><div className="label">Total Records</div><div className="value">{expenses.length} Logged</div></MetricCard>
+        {topCat && <MetricCard><div className="label">Highest Category</div><div className="value" style={{fontSize:'1.3rem'}}>{topCat[0]}</div><div className="sub">Rs. {topCat[1].toLocaleString()}</div></MetricCard>}
       </MetricsGrid>
 
       <FilterStrip>
@@ -253,7 +253,7 @@ const AdminExpenses = () => {
         <TableCard>
           <EliteTable>
             <thead>
-              <tr><th>Title</th><th>Category</th><th>Source Account</th><th>Date</th><th style={{textAlign:'right'}}>Magnitude</th><th>Operations</th></tr>
+              <tr><th>Title</th><th>Category</th><th>Source Account</th><th>Date</th><th style={{textAlign:'right'}}>Amount</th><th>Actions</th></tr>
             </thead>
             <tbody>
               {filtered.map(exp => (
@@ -266,7 +266,7 @@ const AdminExpenses = () => {
                   <td>
                     <div style={{display:'flex', gap:'8px'}}>
                       <RowBtn onClick={() => { setForm({...exp, spentAt: new Date(exp.spentAt).toISOString().slice(0,10), accountId: exp.account?._id || ''}); setIsEditing(true); setShowModal(true); }}>Edit</RowBtn>
-                      <RowBtn $danger onClick={() => setConfirmDel(exp._id)}>Void</RowBtn>
+                      <RowBtn $danger onClick={() => setConfirmDel(exp._id)}>Delete</RowBtn>
                     </div>
                   </td>
                 </tr>
@@ -279,18 +279,18 @@ const AdminExpenses = () => {
       {showModal && (
         <ModalOverlay onClick={() => setShowModal(false)}>
           <ModalCard onClick={e => e.stopPropagation()}>
-            <h3 style={{fontSize:'2.2rem', marginBottom:'32px'}}>{isEditing ? 'Edit Disbursement' : 'Record Disbursement'}</h3>
+            <h3 style={{fontSize:'2.2rem', marginBottom:'32px'}}>{isEditing ? 'Edit Expense' : 'Record Expense'}</h3>
             <form onSubmit={handleSubmit}>
-              <FormGroup><label>Disbursement Title</label><input required value={form.title} onChange={e => setForm({...form, title:e.target.value})} placeholder="e.g. Utility Settlement, Payroll, Rent..." /></FormGroup>
+              <FormGroup><label>Expense Title</label><input required value={form.title} onChange={e => setForm({...form, title:e.target.value})} placeholder="e.g. Electricity Bill, Salary..." /></FormGroup>
               <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'20px'}}>
-                <FormGroup><label>Magnitude (Rs.)</label><input type="number" required value={form.amount} onChange={e => setForm({...form, amount:e.target.value})} /></FormGroup>
-                <FormGroup><label>Target Category</label><select value={form.category} onChange={e => setForm({...form, category:e.target.value})}>{CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}</select></FormGroup>
+                <FormGroup><label>Amount (Rs.)</label><input type="number" required value={form.amount} onChange={e => setForm({...form, amount:e.target.value})} /></FormGroup>
+                <FormGroup><label>Category</label><select value={form.category} onChange={e => setForm({...form, category:e.target.value})}>{CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}</select></FormGroup>
               </div>
-              <FormGroup><label>Ref Account (Auto-Deduct)</label><select value={form.accountId} onChange={e => setForm({...form, accountId:e.target.value})}><option value="">-- Manual Cash (No Deduce) --</option>{accounts.map(a => <option key={a._id} value={a._id}>{a.name} (AVAIL: {a.balance.toLocaleString()})</option>)}</select></FormGroup>
-              <FormGroup><label>Justification / Note</label><textarea rows={3} value={form.note} onChange={e => setForm({...form, note:e.target.value})} /></FormGroup>
+              <FormGroup><label>Deduct From Account</label><select value={form.accountId} onChange={e => setForm({...form, accountId:e.target.value})}><option value="">-- Manual Cash (No Deduct) --</option>{accounts.map(a => <option key={a._id} value={a._id}>{a.name} (AVAIL: {a.balance.toLocaleString()})</option>)}</select></FormGroup>
+              <FormGroup><label>Note / Ref</label><textarea rows={3} value={form.note} onChange={e => setForm({...form, note:e.target.value})} /></FormGroup>
               <div style={{display:'flex', gap:'16px', marginTop:'32px'}}>
-                <ActionBtn type="button" onClick={() => setShowModal(false)} style={{flex:1, background:'var(--bg-surface-alt)', color:'var(--text-primary)', border:'1px solid var(--border)'}}>Dismiss</ActionBtn>
-                <ActionBtn type="submit" disabled={saving} style={{flex:2}}>{saving ? 'COMMITTING...' : 'AUTHORIZE DISBURSEMENT'}</ActionBtn>
+                <ActionBtn type="button" onClick={() => setShowModal(false)} style={{flex:1, background:'var(--bg-surface-alt)', color:'var(--text-primary)', border:'1px solid var(--border)'}}>Cancel</ActionBtn>
+                <ActionBtn type="submit" disabled={saving} style={{flex:2}}>{saving ? 'Saving...' : 'Save Expense'}</ActionBtn>
               </div>
             </form>
           </ModalCard>
@@ -301,11 +301,11 @@ const AdminExpenses = () => {
         <ModalOverlay onClick={() => setConfirmDel(null)}>
           <ModalCard style={{textAlign:'center'}}>
             <div style={{fontSize:'4rem', marginBottom:'24px'}}>⚠️</div>
-            <h3>Void Financial Entry?</h3>
-            <p style={{color:'var(--text-secondary)', marginBottom:'32px'}}>Authorizing a VOID will permanently remove this entry. If linked to an account, the funds will be recursive-refunded.</p>
+            <h3>Delete Expense?</h3>
+            <p style={{color:'var(--text-secondary)', marginBottom:'32px'}}>Deleting this record is permanent. If linked to an account, the funds will be restored.</p>
             <div style={{display:'flex', gap:'16px'}}>
-              <ActionBtn onClick={() => setConfirmDel(null)} style={{flex:1, background:'var(--bg-surface-alt)', color:'var(--text-primary)', border:'1px solid var(--border)'}}>Dismiss</ActionBtn>
-              <ActionBtn onClick={handleDelete} style={{flex:1, background:'#FF5252', borderColor:'#FF5252'}}>Confirm VOID</ActionBtn>
+              <ActionBtn onClick={() => setConfirmDel(null)} style={{flex:1, background:'var(--bg-surface-alt)', color:'var(--text-primary)', border:'1px solid var(--border)'}}>Cancel</ActionBtn>
+              <ActionBtn onClick={handleDelete} style={{flex:1, background:'#FF5252', borderColor:'#FF5252'}}>Yes, Delete</ActionBtn>
             </div>
           </ModalCard>
         </ModalOverlay>
