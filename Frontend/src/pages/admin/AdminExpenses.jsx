@@ -139,9 +139,15 @@ const ModalCard = styled.div`
   padding: var(--spacing-xxl);
   border-radius: var(--radius-card);
   width: 550px;
+  max-height: 90vh;
+  overflow-y: auto;
+  overflow-x: auto;
   border: 1px solid var(--border);
   box-shadow: var(--shadow-premium);
   animation: entrance 0.4s ease;
+
+  &::-webkit-scrollbar { width: 8px; height: 8px; }
+  &::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
 `;
 
 const FormGroup = styled.div`

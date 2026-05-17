@@ -218,29 +218,29 @@ const Profile = () => {
       setSaving(true);
       const res = await api.post("/auth/avatar", fd);
       setForm({...form, avatarUrl: res.data.avatarUrl});
-      setMsg({ text: "Identity Visualization Updated.", type: "success" });
-    } catch (err) { setMsg({ text: "Update Protocol Failed.", type: "error" }); } 
+      setMsg({ text: "Profile photo updated.", type: "success" });
+    } catch (err) { setMsg({ text: "Failed to update profile photo.", type: "error" }); } 
     finally { setSaving(false); }
   };
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
-    if (passwords.newPass !== passwords.confirm) return setMsg({ text: "Authorization Mismatch: Passwords differ.", type: "error" });
+    if (passwords.newPass !== passwords.confirm) return setMsg({ text: "Passwords do not match.", type: "error" });
     setSaving(true);
     try {
       await api.put('/auth/password', { currentPassword: passwords.current, newPassword: passwords.newPass });
-      setMsg({ text: "Security Credentials Synchronized.", type: "success" });
+      setMsg({ text: "Password updated successfully.", type: "success" });
       setPasswords({ current: "", newPass: "", confirm: "" });
-    } catch (err) { setMsg({ text: "Protocol Failure: Incorrect credentials.", type: "error" }); } 
+    } catch (err) { setMsg({ text: "Incorrect current password.", type: "error" }); } 
     finally { setSaving(false); }
   };
 
-  if (loading) return <PageContainer><h2 style={{color:'var(--primary)', textAlign:'center', marginTop:'100px'}}>Analyzing Identity Profile...</h2></PageContainer>;
+  if (loading) return <PageContainer><h2 style={{color:'var(--primary)', textAlign:'center', marginTop:'100px'}}>Loading Profile...</h2></PageContainer>;
 
   return (
     <PageContainer>
       <ContentWrapper>
-        <PageTitle>Stakeholder Identity <small>SECURE ADMINISTRATIVE PROFILE MANAGEMENT</small></PageTitle>
+        <PageTitle>My Profile <small>Manage your account details</small></PageTitle>
 
         <ProfileHero>
           <AvatarContainer>
@@ -258,41 +258,41 @@ const Profile = () => {
         {msg.text && <Message $type={msg.type}>{msg.text}</Message>}
 
         <EliteCard>
-          <CardTitle>Institutional Details</CardTitle>
+          <CardTitle>Personal Details</CardTitle>
           <GovernanceAlert>
-            <h4>Profile Governance Protocol</h4>
-            <p>This identity profile is subject to strict institutional overrides. Immutable fields are managed by central administration to ensure data integrity. Contact the Strategic Command Center for fundamental identity adjustments.</p>
+            <h4>Account Restrictions</h4>
+            <p>Some profile details are managed by the store administrator to ensure integrity. Please contact support if you need to update these fields.</p>
           </GovernanceAlert>
 
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'32px' }}>
-            <FormGroup><label>Authorized First Name</label><input value={form.first_name} disabled /></FormGroup>
-            <FormGroup><label>Authorized Last Name</label><input value={form.last_name} disabled /></FormGroup>
+            <FormGroup><label>First Name</label><input value={form.first_name} disabled /></FormGroup>
+            <FormGroup><label>Last Name</label><input value={form.last_name} disabled /></FormGroup>
           </div>
-          <FormGroup><label>Institutional Communication Endpoint (Email)</label><input value={form.email} disabled /></FormGroup>
+          <FormGroup><label>Email Address</label><input value={form.email} disabled /></FormGroup>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'32px' }}>
-            <FormGroup><label>Verified Contact Magnitude</label><input value={phones.join(', ')} disabled /></FormGroup>
-            <FormGroup><label>National ID / CNIC Hash</label><input value={form.cnic} disabled /></FormGroup>
+            <FormGroup><label>Phone Number</label><input value={phones.join(', ')} disabled /></FormGroup>
+            <FormGroup><label>CNIC</label><input value={form.cnic} disabled /></FormGroup>
           </div>
-          <FormGroup><label>Permanent Strategic Location (Address)</label><input value={form.address} disabled /></FormGroup>
-          <div style={{textAlign:'center', fontSize:'0.7rem', color:'var(--text-secondary)', fontWeight:900, textTransform:'uppercase', letterSpacing:'0.2em'}}>Registry State: [READ-ONLY AUTHORIZED]</div>
+          <FormGroup><label>Address</label><input value={form.address} disabled /></FormGroup>
+          <div style={{textAlign:'center', fontSize:'0.7rem', color:'var(--text-secondary)', fontWeight:900, textTransform:'uppercase', letterSpacing:'0.2em'}}>These fields cannot be edited directly.</div>
         </EliteCard>
 
         <EliteCard>
-          <CardTitle>Security Credentials</CardTitle>
+          <CardTitle>Password Management</CardTitle>
           <form onSubmit={handleChangePassword}>
-            <FormGroup><label>Active Credentials (Current Passphrase)</label><input type="password" value={passwords.current} onChange={(e) => setPasswords({ ...passwords, current: e.target.value })} required /></FormGroup>
+            <FormGroup><label>Current Password</label><input type="password" value={passwords.current} onChange={(e) => setPasswords({ ...passwords, current: e.target.value })} required /></FormGroup>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'32px' }}>
-              <FormGroup><label>Strategic Passphrase Offset (New Password)</label><input type="password" value={passwords.newPass} onChange={(e) => setPasswords({ ...passwords, newPass: e.target.value })} required /></FormGroup>
-              <FormGroup><label>Confirmation Hash (Repeat New Password)</label><input type="password" value={passwords.confirm} onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })} required /></FormGroup>
+              <FormGroup><label>New Password</label><input type="password" value={passwords.newPass} onChange={(e) => setPasswords({ ...passwords, newPass: e.target.value })} required /></FormGroup>
+              <FormGroup><label>Confirm New Password</label><input type="password" value={passwords.confirm} onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })} required /></FormGroup>
             </div>
-            <ActionBtn type="submit" disabled={saving}>{saving ? "Synchronizing..." : "Authorize Passphrase Reset"}</ActionBtn>
+            <ActionBtn type="submit" disabled={saving}>{saving ? "Updating..." : "Change Password"}</ActionBtn>
           </form>
         </EliteCard>
 
         <EliteCard style={{ borderColor: 'rgba(255, 82, 82, 0.2)', background: 'rgba(255, 82, 82, 0.02)' }}>
-          <CardTitle style={{ color: '#FF5252' }}>Session Termination</CardTitle>
-          <p style={{ color: 'var(--text-secondary)', fontWeight: 600, marginBottom: '24px' }}>Terminate the current encrypted link and lock out the device.</p>
-          <DangerBtn onClick={() => { logout(); window.location.href = '#/login'; }}>Authorize Session Termination</DangerBtn>
+          <CardTitle style={{ color: '#FF5252' }}>Sign Out</CardTitle>
+          <p style={{ color: 'var(--text-secondary)', fontWeight: 600, marginBottom: '24px' }}>Sign out of your account on this device.</p>
+          <DangerBtn onClick={() => { logout(); window.location.href = '#/login'; }}>Sign Out</DangerBtn>
         </EliteCard>
 
       </ContentWrapper>

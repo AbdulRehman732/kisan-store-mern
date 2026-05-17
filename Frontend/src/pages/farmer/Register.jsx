@@ -170,7 +170,7 @@ const Register = () => {
         <BrandHeader>
           <span className="icon">🚜</span>
           <h1>Stakeholder Registration</h1>
-          <p>Initialize your Agrotek Institutional Account</p>
+          <p>Initialize your KisanStore Institutional Account</p>
         </BrandHeader>
 
         {error && <ErrorAlert>⚠️ {error}</ErrorAlert>}
@@ -181,7 +181,7 @@ const Register = () => {
             <FormGroup><label>Last Identity</label><input name="last_name" value={form.last_name} onChange={handleChange} placeholder="Last Name" required /></FormGroup>
           </FormRow>
 
-          <FormGroup><label>Strategic Communication (Email)</label><input type="email" name="email" value={form.email} onChange={handleChange} placeholder="stakeholder@agrotek.com" required /></FormGroup>
+          <FormGroup><label>Strategic Communication (Email)</label><input type="email" name="email" value={form.email} onChange={handleChange} placeholder="stakeholder@kisanstore.pk" required /></FormGroup>
 
           <FormGroup>
             <label>Certified Contacts <small style={{opacity:0.6}}>(UP TO 3)</small></label>

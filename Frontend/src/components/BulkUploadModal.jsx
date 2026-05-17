@@ -137,7 +137,6 @@ const BulkUploadModal = ({ onClose, onRefresh }) => {
 
     try {
       const { data } = await axios.post('/api/products/bulk-upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
         withCredentials: true
       });
       setStatus({ type: 'success', message: `INGESTION COMPLETE: ${data.message}` });
@@ -162,7 +161,7 @@ const BulkUploadModal = ({ onClose, onRefresh }) => {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'agrotek_products_manifest.csv';
+    a.download = 'kisanstore_products_manifest.csv';
     a.click();
   };
 

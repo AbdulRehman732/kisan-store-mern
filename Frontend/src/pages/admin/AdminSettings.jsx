@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
 import api from '../../api';
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+// Fix for default Leaflet marker icons in React
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
 // ===== STYLED COMPONENTS =====
 const PageContainer = styled.div`
@@ -27,7 +38,7 @@ const PageTitle = styled.h2`
 
 const SettingsGrid = styled.div`
   display: grid;
-  grid-template-columns: 1.2fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: var(--spacing-xxl);
   @media (max-width: 1000px) { grid-template-columns: 1fr; }
 `;
@@ -116,9 +127,31 @@ const Feedback = styled.div`
   border: 1px solid currentColor;
 `;
 
+const MapWrapper = styled.div`
+  height: 350px;
+  width: 100%;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 2px solid var(--border);
+  margin-bottom: 16px;
+`;
+
+// Helper component to handle map clicks
+const MapEvents = ({ onLocationSelected }) => {
+  useMapEvents({
+    click(e) {
+      onLocationSelected({ lat: e.latlng.lat, lng: e.latlng.lng });
+    },
+  });
+  return null;
+};
+
 // ===== COMPONENT =====
 const AdminSettings = () => {
-  const [settings, setSettings] = useState({ storeName: '', storeAddress: '', storePhone: '', footerText: '', logoUrl: '' });
+  const [settings, setSettings] = useState({ 
+    storeName: '', storeAddress: '', storePhone: '', footerText: '', logoUrl: '', whatsappNumber: '', supportEmail: '' 
+  });
+  const [position, setPosition] = useState({ lat: 31.5204, lng: 74.3587 }); // Default: Lahore
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState(null);
@@ -128,7 +161,23 @@ const AdminSettings = () => {
   const fetchSettings = async () => {
     try {
       const res = await api.get('/admin/settings');
-      if (res.data.settings) setSettings(res.data.settings);
+      if (res.data.settings) {
+        setSettings({
+          storeName: res.data.settings.storeName || '',
+          storeAddress: res.data.settings.storeAddress || '',
+          storePhone: res.data.settings.storePhone || '',
+          footerText: res.data.settings.footerText || '',
+          logoUrl: res.data.settings.logoUrl || '',
+          whatsappNumber: res.data.settings.whatsappNumber || '',
+          supportEmail: res.data.settings.supportEmail || ''
+        });
+        if (res.data.settings.mapCoordinates && typeof res.data.settings.mapCoordinates.lat === 'number') {
+          setPosition({ 
+            lat: Number(res.data.settings.mapCoordinates.lat) || 31.5204, 
+            lng: Number(res.data.settings.mapCoordinates.lng) || 74.3587 
+          });
+        }
+      }
     } catch (err) { console.error(err); } 
     finally { setLoading(false); }
   };
@@ -137,10 +186,23 @@ const AdminSettings = () => {
     e.preventDefault();
     setSaving(true); setStatus(null);
     try {
-      await api.put('/admin/settings', settings);
-      setStatus({ msg: 'Branding identity synchronized.', error: false });
-    } catch (err) { setStatus({ msg: 'Update failure: Digital Refinement Refused.', error: true }); } 
+      await api.put('/admin/settings', { ...settings, mapCoordinates: position });
+      setStatus({ msg: 'Settings updated successfully.', error: false });
+    } catch (err) { setStatus({ msg: 'Update failed.', error: true }); } 
     finally { setSaving(false); }
+  };
+
+  const handleLocationSelected = async (latlng) => {
+    setPosition(latlng);
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}`);
+      const data = await res.json();
+      if (data && data.display_name) {
+        setSettings(prev => ({ ...prev, storeAddress: data.display_name }));
+      }
+    } catch (error) {
+      console.error('Geocoding failed:', error);
+    }
   };
 
   const handleLogoUpload = async (e) => {
@@ -152,8 +214,8 @@ const AdminSettings = () => {
     try {
       const res = await api.post('/admin/settings/logo', formData);
       setSettings({ ...settings, logoUrl: res.data.logoUrl });
-      setStatus({ msg: 'Official Logo Authorization Verified.', error: false });
-    } catch (err) { setStatus({ msg: 'Visual asset calibration failed.', error: true }); } 
+      setStatus({ msg: 'Logo Uploaded.', error: false });
+    } catch (err) { setStatus({ msg: 'Logo upload failed.', error: true }); } 
     finally { setSaving(false); }
   };
 
@@ -163,47 +225,71 @@ const AdminSettings = () => {
     <PageContainer>
       <ContentWrapper>
         <TopHeader>
-          <PageTitle>System Branding <small>INSTITUTIONAL IDENTITY & GLOBAL CONFIGURATION</small></PageTitle>
+          <PageTitle>Store & Support Settings <small>Contact Info & Map Configuration</small></PageTitle>
         </TopHeader>
 
-        <SettingsGrid>
-          <ConfigCard>
-            <CardTitle>Institutional Details</CardTitle>
-            <form onSubmit={handleUpdate}>
-              <FormGroup><label>Consortium Name</label><input value={settings.storeName} onChange={e => setSettings({...settings, storeName: e.target.value})} placeholder="e.g. Agrotek Elite Intelligence" /></FormGroup>
-              <FormGroup><label>Global Logistics Hub (Address)</label><textarea rows="3" value={settings.storeAddress} onChange={e => setSettings({...settings, storeAddress: e.target.value})} placeholder="Primary Operations Center..." /></FormGroup>
-              <FormGroup><label>Strategic Support Hotline</label><input value={settings.storePhone} onChange={e => setSettings({...settings, storePhone: e.target.value})} placeholder="+92 300 0000000" /></FormGroup>
-              <FormGroup><label>Fiscal Document Footer</label><input value={settings.footerText} onChange={e => setSettings({...settings, footerText: e.target.value})} placeholder="Standard closing remark..." /></FormGroup>
-              <ActionBtn type="submit" disabled={saving}>{saving ? 'SYNCHRONIZING...' : 'AUTHORIZE IDENTITY UPDATE'}</ActionBtn>
-            </form>
-            {status && <Feedback $error={status.error}>{status.msg}</Feedback>}
-          </ConfigCard>
+        <form onSubmit={handleUpdate}>
+          <SettingsGrid>
+            {/* Left Column */}
+            <div style={{display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xxl)'}}>
+              <ConfigCard>
+                <CardTitle>Company Details</CardTitle>
+                <FormGroup><label>Store Name</label><input value={settings.storeName} onChange={e => setSettings({...settings, storeName: e.target.value})} placeholder="e.g. KisanStore" /></FormGroup>
+                <FormGroup><label>Support Email</label><input type="email" value={settings.supportEmail} onChange={e => setSettings({...settings, supportEmail: e.target.value})} placeholder="support@kisanstore.pk" /></FormGroup>
+                <FormGroup><label>Phone Number (Calling)</label><input value={settings.storePhone} onChange={e => setSettings({...settings, storePhone: e.target.value})} placeholder="+92 300 0000000" /></FormGroup>
+                <FormGroup><label>WhatsApp Support Number</label><input value={settings.whatsappNumber} onChange={e => setSettings({...settings, whatsappNumber: e.target.value})} placeholder="+92 300 0000000" /></FormGroup>
+              </ConfigCard>
 
-          <ConfigCard>
-            <CardTitle>Official Visual Identity</CardTitle>
-            <p style={{fontSize:'1rem', color:'var(--text-secondary)', marginBottom:'32px', fontWeight:600, lineHeight:1.6}}>
-              This identifier will appear in the header of all official statements and tactical reports. 
-              <strong> High-resolution transparent PNG recommended.</strong>
-            </p>
-            
-            <label htmlFor="logo-upload">
-              <LogoPlate>
-                <img src={settings.logoUrl ? `http://localhost:5000${settings.logoUrl}` : 'https://ui-avatars.com/api/?name=Agrotek&background=2B3922&color=F5B611'} alt="Seal" />
-                <div className="hint">{saving ? 'Transmitting Asset...' : 'Click to Upload Official Seal (JPG, PNG, WEBP)'}</div>
-                <input id="logo-upload" type="file" onChange={handleLogoUpload} disabled={saving} accept="image/*" />
-              </LogoPlate>
-            </label>
-            
-            <div style={{marginTop:'40px', background:'var(--bg-surface-alt)', padding:'24px', borderRadius:'16px', border:'1px solid var(--border)'}}>
-              <h4 style={{fontSize:'0.75rem', fontWeight:900, color:'var(--primary)', marginBottom:'12px', textTransform:'uppercase', letterSpacing:'0.1em'}}>Digital Integrity Info</h4>
-              <div style={{fontSize:'0.85rem', color:'var(--text-secondary)', fontWeight:700, display:'flex', flexDirection:'column', gap: '8px'}}>
-                <span>✔ Seal: {settings.logoUrl ? 'Authorized' : 'System Default Active'}</span>
-                <span>✔ Resolution: Auto-Optimized to WEBP High-Fidelity</span>
-                <span>✔ Global Deployment: Active for Invoices & Reports</span>
-              </div>
+              <ConfigCard>
+                <CardTitle>Visual Logo Identity</CardTitle>
+                <label htmlFor="logo-upload">
+                  <LogoPlate>
+                    <img src={settings.logoUrl ? `http://localhost:5000${settings.logoUrl}` : 'https://ui-avatars.com/api/?name=Store&background=2B3922&color=F5B611'} alt="Logo" />
+                    <div className="hint">{saving ? 'Uploading...' : 'Click to Upload Store Logo (JPG, PNG)'}</div>
+                    <input id="logo-upload" type="file" onChange={handleLogoUpload} disabled={saving} accept="image/*" />
+                  </LogoPlate>
+                </label>
+              </ConfigCard>
             </div>
-          </ConfigCard>
-        </SettingsGrid>
+
+            {/* Right Column */}
+            <div style={{display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xxl)'}}>
+              <ConfigCard>
+                <CardTitle>Physical Location Map</CardTitle>
+                <div style={{fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '16px', lineHeight: 1.5}}>
+                  Click anywhere on the map to pin your store location. This will automatically update your GPS coordinates and written address below.
+                </div>
+                
+                <MapWrapper>
+                  <MapContainer 
+                    key={`${position.lat}-${position.lng}`}
+                    center={[position.lat, position.lng]} 
+                    zoom={13} 
+                    style={{ height: '100%', width: '100%', zIndex: 1 }}
+                  >
+                    <TileLayer
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                    />
+                    <Marker position={[position.lat, position.lng]} />
+                    <MapEvents onLocationSelected={handleLocationSelected} />
+                  </MapContainer>
+                </MapWrapper>
+
+                <FormGroup><label>Written Address (Auto-generated)</label><textarea rows="3" value={settings.storeAddress} onChange={e => setSettings({...settings, storeAddress: e.target.value})} placeholder="Street Box, Sector..." /></FormGroup>
+                <div style={{fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 600, marginBottom: '24px'}}>
+                  Pinned GPS: {position.lat.toFixed(5)}, {position.lng.toFixed(5)}
+                </div>
+
+                <FormGroup><label>Invoice Footer / Welcome Message</label><input value={settings.footerText} onChange={e => setSettings({...settings, footerText: e.target.value})} placeholder="Thank you for shopping with us!" /></FormGroup>
+
+                <ActionBtn type="submit" disabled={saving}>{saving ? 'SAVING...' : 'SAVE CONFIGURATIONS'}</ActionBtn>
+                {status && <Feedback $error={status.error}>{status.msg}</Feedback>}
+              </ConfigCard>
+            </div>
+
+          </SettingsGrid>
+        </form>
       </ContentWrapper>
     </PageContainer>
   );

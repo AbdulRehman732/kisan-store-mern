@@ -125,7 +125,7 @@ const Footer = () => {
       <ContentWrapper>
         <Column>
           <BrandBlock>
-            <Link to="/" className="logo">🌾 Agrotek<span>Elite</span></Link>
+            <Link to="/" className="logo">🌾 Kisan<span>Store</span></Link>
             <p>Empowering agricultural strategic operations through high-fidelity intelligence and institutional-grade resource mobilization.</p>
             <SocialStrip>
               <a href="#">📘</a>
@@ -161,14 +161,14 @@ const Footer = () => {
           <ContactInfo>
             <p>📍 <span className="highlight">Faisalabad Strategic Hub</span></p>
             <p>📞 +92 300 0000000</p>
-            <p>✉️ command@agrotek-elite.com</p>
+            <p>✉️ command@kisanstore.pk</p>
             <p style={{ marginTop: '24px', fontStyle: 'italic', opacity: 0.7 }}>"Rooting intelligence, harvesting excellence."</p>
           </ContactInfo>
         </Column>
       </ContentWrapper>
 
       <Copyright>
-        <div>© 2026 Agrotek Elite Intelligence Systems</div>
+        <div>© 2026 KisanStore Intelligence Systems</div>
         <div style={{ display: 'flex', gap: '20px' }}>
           <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Privacy Protocol</a>
           <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Operational Terms</a>

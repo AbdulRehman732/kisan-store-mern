@@ -138,8 +138,14 @@ const MModal = styled.div`
   padding: var(--spacing-xxl);
   width: 100%;
   max-width: 580px;
+  max-height: 90vh;
+  overflow-y: auto;
+  overflow-x: auto;
   border: 1px solid var(--border);
   box-shadow: var(--shadow-premium);
+
+  &::-webkit-scrollbar { width: 8px; height: 8px; }
+  &::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
 `;
 
 const MGroup = styled.div`

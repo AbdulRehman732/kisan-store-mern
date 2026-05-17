@@ -178,10 +178,8 @@ const AdminProducts = () => {
         }
       }
       
-      const config = { headers: { 'Content-Type': 'multipart/form-data' } };
-      
-      if (editing) await api.put(`/products/${editing}`, formData, config);
-      else await api.post("/products", formData, config);
+      if (editing) await api.put(`/products/${editing}`, formData);
+      else await api.post("/products", formData);
       
       setShowModal(false);
       fetchProducts();

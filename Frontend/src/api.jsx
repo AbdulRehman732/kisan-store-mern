@@ -18,7 +18,8 @@ api.interceptors.response.use(
         await axios.post('/api/auth/refresh-token', {}, { withCredentials: true });
         return api(originalRequest);
       } catch (refreshError) {
-        // Bug 1 Fix: Use hash location for redirect in HashRouter
+        // Clear session on failure
+        localStorage.removeItem('sessionExpiration');
         window.location.hash = '#/login';
       }
     }

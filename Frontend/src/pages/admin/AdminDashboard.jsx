@@ -12,16 +12,13 @@ const PageContainer = styled.div`
   padding: var(--spacing-xl);
   animation: entrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 `;
-
 const Header = styled.div`
   margin-bottom: var(--spacing-xxl);
 `;
-
 const Title = styled.h2`
   font-size: 3.5rem;
   color: var(--text-primary);
   margin-bottom: 8px;
-  
   small {
     display: block;
     font-size: 1.1rem;
@@ -312,5 +309,4 @@ const AdminDashboard = () => {
     </PageContainer>
   );
 };
-
 export default AdminDashboard;

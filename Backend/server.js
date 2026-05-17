@@ -35,7 +35,7 @@ app.use(helmet({
 
 // CORS - only allow frontend
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: ['http://localhost:3000', 'http://localhost:5173'],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true // Allow cookies to be sent
@@ -106,7 +106,7 @@ const server = app.listen(PORT, () => console.log(`Server running on port ${PORT
 // ===== SOCKET.IO =====
 const io = require('socket.io')(server, {
   cors: {
-    origin: 'http://localhost:3000',
+    origin: ['http://localhost:3000', 'http://localhost:5173'],
     methods: ['GET', 'POST'],
     credentials: true
   }

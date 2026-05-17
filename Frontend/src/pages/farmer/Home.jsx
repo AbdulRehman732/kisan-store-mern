@@ -54,11 +54,11 @@ const HeroContent = styled.div`
   max-width: 900px;
   position: relative;
   z-index: 10;
-  padding: var(--spacing-xxl);
+  padding: 120px var(--spacing-xxl) var(--spacing-xxl);
   animation: entrance 1.2s cubic-bezier(0.16, 1, 0.3, 1);
 `;
 
-const EliteBadge = styled.div`
+const StrategicBadge = styled.div`
   display: inline-flex;
   align-items: center;
   gap: 12px;
@@ -209,8 +209,8 @@ const Home = () => {
       <Hero>
         <div style={{maxWidth:'1400px', margin:'0 auto', width:'100%', padding:'0 48px'}}>
           <HeroContent>
-            <EliteBadge>🏛️ Institutional Agricultural Gateway</EliteBadge>
-            <HeroTitle>Pakistan's <span>Elite</span> Operational Hub</HeroTitle>
+            <StrategicBadge>🏛️ Institutional Agricultural Gateway</StrategicBadge>
+            <HeroTitle>Pakistan's <span>Strategic</span> Operational Hub</HeroTitle>
             <HeroDesc>
               Engineering the future of high-yield agriculture. We provide the 
               institutional-grade assets required for modern, state-of-the-art production.

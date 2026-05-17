@@ -5,7 +5,7 @@ const crypto = require('crypto');
 // Helpers for token generation
 const generateAccessToken = (id, role) => {
   return jwt.sign({ id, role }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE || '15m'
+    expiresIn: process.env.JWT_EXPIRE || '4m'
   });
 };
 
@@ -16,21 +16,26 @@ const generateRefreshToken = (id) => {
 };
 
 const setCookies = (res, accessToken, refreshToken) => {
-  const cookieOptions = {
-    httpOnly: true,
-    secure: false, // Ensure cookies are sent over HTTP in local dev
-    sameSite: 'Lax'
-  };
+  try {
+    if (!res || typeof res.cookie !== 'function') {
+      throw new Error('Invalid response object');
+    }
+    if (!accessToken || !refreshToken) {
+      throw new Error('Missing token(s) for cookies');
+    }
 
-  res.cookie('accessToken', accessToken, {
-    ...cookieOptions,
-    maxAge: 15 * 60 * 1000 // 15 minutes
-  });
+    const cookieOptions = {
+      httpOnly: true,
+      secure: false, // Ensure cookies are sent over HTTP in local dev
+      sameSite: 'Lax',
+      maxAge: 4 * 60 * 1000 // 4 minutes
+    };
 
-  res.cookie('refreshToken', refreshToken, {
-    ...cookieOptions,
-    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-  });
+    res.cookie('accessToken', accessToken, cookieOptions);
+    res.cookie('refreshToken', refreshToken, cookieOptions);
+  } catch (error) {
+    console.error('[AUTH] Failed to set cookies:', error.message);
+  }
 };
 
 exports.register = async (req, res) => {
@@ -336,4 +341,13 @@ exports.uploadAvatar = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+// Export internal functions for testing
+if (process.env.NODE_ENV === 'test') {
+  exports.__testing = {
+    setCookies,
+    generateAccessToken,
+    generateRefreshToken
+  };
+}
 

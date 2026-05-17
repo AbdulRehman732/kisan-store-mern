@@ -156,7 +156,7 @@ const SummaryBox = styled.div`
   margin-top: 24px;
   
   .row { display: flex; justify-content: space-between; margin-bottom: 12px; font-weight: 700; color: var(--text-secondary); }
-  .total { font-size: 1.8rem; color: var(--text-primary); font-weight: 900; margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px; }
+  .total { display: flex; justify-content: space-between; align-items: center; font-size: 1.8rem; color: var(--text-primary); font-weight: 900; margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px; }
 `;
 
 const RecordBtn = styled.button`
@@ -239,13 +239,13 @@ const AdminPOS = () => {
           accountId: accountId || undefined
         }
       });
-      alert('Institutional Sale Authorized & Recorded.');
+      alert('Sale successful and recorded.');
       setSelectedFarmer(null);
       setCart([]);
       setPayAmount('');
       api.get('/products').then(r => setProducts(r.data.products || [])).catch(()=>{});
     } catch (err) {
-      alert(err.response?.data?.message || 'Authorization Refused.');
+      alert(err.response?.data?.message || 'Payment Failed.');
     } finally {
       setProcessing(false);
     }
@@ -254,15 +254,15 @@ const AdminPOS = () => {
   return (
     <PageContainer>
       <Topbar>
-        <PageTitle>Direct POS Terminal <small>EXECUTIVE RETAIL ENGINE</small></PageTitle>
+        <PageTitle>Point of Sale (POS) <small>Cashier Checkout</small></PageTitle>
       </Topbar>
 
       <POSGrid>
         <div style={{display:'flex', flexDirection:'column', gap:'var(--spacing-xl)'}}>
           <EliteCard>
-            <CardTitle>📡 Logistics & Asset Identification</CardTitle>
+            <CardTitle>📡 Customer & Products</CardTitle>
             <SearchWrapper>
-              <label>IDENTIFY STAKEHOLDER</label>
+              <label>SELECT CUSTOMER</label>
               <input 
                 placeholder="Enter Name, Entity ID or Contact..." 
                 value={selectedFarmer ? `${selectedFarmer.first_name} ${selectedFarmer.last_name} (${selectedFarmer.phone})` : searchFarmers}
@@ -281,7 +281,7 @@ const AdminPOS = () => {
             </SearchWrapper>
 
             <SearchWrapper>
-              <label>INITIALIZE ASSET DISCOVERY</label>
+              <label>SEARCH PRODUCTS</label>
               <input 
                 placeholder="Specification, Category or Nutrient Index..." 
                 value={searchProducts}
@@ -304,17 +304,17 @@ const AdminPOS = () => {
           </EliteCard>
 
           <EliteCard>
-            <CardTitle>📜 Operational Inventory Log</CardTitle>
+            <CardTitle>🛒 Shopping Cart</CardTitle>
             {cart.length === 0 ? (
-              <div style={{textAlign:'center', padding:'60px', color:'var(--text-secondary)', opacity:0.6, fontSize:'1.1rem', fontWeight:600}}>Initializing... No assets currently logged for mobilization.</div>
+              <div style={{textAlign:'center', padding:'60px', color:'var(--text-secondary)', opacity:0.6, fontSize:'1.1rem', fontWeight:600}}>Cart is empty. Search for products to add them to the sale.</div>
             ) : (
               <EliteTable>
                 <thead>
                   <tr>
-                    <th>Asset Specification</th>
-                    <th>Valuation</th>
-                    <th>Magnitude</th>
-                    <th style={{textAlign:'right'}}>Line Total</th>
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th>Qty</th>
+                    <th style={{textAlign:'right'}}>Total</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -345,37 +345,37 @@ const AdminPOS = () => {
 
         <div>
           <EliteCard style={{position:'sticky', top:'120px'}}>
-            <CardTitle>🧾 Financial Summary Audit</CardTitle>
+            <CardTitle>🧾 Order Summary</CardTitle>
             <SummaryBox>
-              <div className="row"><span>Asset Subtotal</span><span>Rs. {subtotal.toLocaleString()}</span></div>
-              <div className="row"><span>Institutional Levy</span><span>Rs. {tax.toLocaleString()}</span></div>
-              <div className="total"><span>TOTAL PAYABLE</span><span>Rs. {total.toLocaleString()}</span></div>
+              <div className="row"><span>Subtotal</span><span>Rs. {subtotal.toLocaleString()}</span></div>
+              <div className="row"><span>Tax / Fee</span><span>Rs. {tax.toLocaleString()}</span></div>
+              <div className="total"><span>TOTAL DUE</span><span>Rs. {total.toLocaleString()}</span></div>
             </SummaryBox>
 
             <div style={{marginTop:'40px'}}>
-              <CardTitle>💰 Monetary Authorization</CardTitle>
+              <CardTitle>💰 Payment Details</CardTitle>
               <div style={{display:'flex', flexDirection:'column', gap:'20px'}}>
                 <SearchWrapper>
-                  <label>Initial Mobilization Fund (Rs.)</label>
+                  <label>Amount Paid Now (Rs.)</label>
                   <input type="number" placeholder="0.00" value={payAmount} onChange={e => setPayAmount(e.target.value)} />
                   {Number(payAmount) < total && Number(payAmount) > 0 && (
-                    <div style={{fontSize:'0.75rem', color:'#F5B611', fontWeight:900, marginTop:'8px', textTransform:'uppercase'}}>⚠️ RESIDUAL RS. {(total - Number(payAmount)).toLocaleString()} LOGGED AS SYSTEM CREDIT</div>
+                    <div style={{fontSize:'0.75rem', color:'#F5B611', fontWeight:900, marginTop:'8px', textTransform:'uppercase'}}>⚠️ RESIDUAL RS. {(total - Number(payAmount)).toLocaleString()} LOGGED AS CUSTOMER DEBT</div>
                   )}
                 </SearchWrapper>
 
                 {Number(payAmount) > 0 && (
                   <>
                     <SearchWrapper>
-                      <label>Clearing Protocol</label>
+                      <label>Payment Method</label>
                       <select value={payMethod} onChange={e => setPayMethod(e.target.value)} style={{width:'100%', padding:'18px', background:'var(--bg-surface-alt)', border:'1px solid var(--border)', borderRadius:'var(--radius-md)', color:'var(--text-primary)', fontWeight:700}}>
-                        <option value="Cash">Physical Currency (Cash)</option>
-                        <option value="Bank Transfer">Atomic Bank Transfer</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
                       </select>
                     </SearchWrapper>
                     <SearchWrapper>
-                      <label>Target Treasury Account</label>
+                      <label>Deposit To Account</label>
                       <select value={accountId} onChange={e => setAccountId(e.target.value)} style={{width:'100%', padding:'18px', background:'var(--bg-surface-alt)', border:'1px solid var(--border)', borderRadius:'var(--radius-md)', color:'var(--text-primary)', fontWeight:700}}>
-                        <option value="">-- Select Recipient Ledger --</option>
+                        <option value="">-- Choose Account --</option>
                         {accounts.map(a => <option key={a._id} value={a._id}>{a.name} (AVAIL: {a.balance.toLocaleString()})</option>)}
                       </select>
                     </SearchWrapper>
@@ -385,7 +385,7 @@ const AdminPOS = () => {
             </div>
 
             <RecordBtn disabled={processing || cart.length === 0 || !selectedFarmer} onClick={handleRecordSale}>
-              {processing ? 'AUTHORIZING...' : 'AUTHORIZE DIRECT DISPATCH'}
+              {processing ? 'PROCESSING...' : 'COMPLETE SALE'}
             </RecordBtn>
           </EliteCard>
         </div>

@@ -159,7 +159,7 @@ export const generateSingleInvoice = async (order) => {
   const margin = 14;
   let currentY = 20;
 
-  // 1. Header (Agrotek Style)
+  // 1. Header (KisanStore Style)
   doc.setFillColor(43, 57, 34); 
   doc.rect(0, 0, 210, 50, 'F');
 

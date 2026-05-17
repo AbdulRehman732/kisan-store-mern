@@ -20,7 +20,7 @@ exports.getSettings = async (req, res) => {
 // Update store details
 exports.updateSettings = async (req, res) => {
   try {
-    const { storeName, storeAddress, storePhone, footerText } = req.body;
+    const { storeName, storeAddress, storePhone, footerText, whatsappNumber, supportEmail, mapCoordinates } = req.body;
     let settings = await Settings.findOne();
     if (!settings) settings = new Settings();
 
@@ -28,6 +28,10 @@ exports.updateSettings = async (req, res) => {
     settings.storeAddress = storeAddress || settings.storeAddress;
     settings.storePhone = storePhone || settings.storePhone;
     settings.footerText = footerText || settings.footerText;
+    
+    if (whatsappNumber !== undefined) settings.whatsappNumber = whatsappNumber;
+    if (supportEmail !== undefined) settings.supportEmail = supportEmail;
+    if (mapCoordinates !== undefined) settings.mapCoordinates = mapCoordinates;
     settings.lastUpdatedBy = req.user._id;
 
     await settings.save();

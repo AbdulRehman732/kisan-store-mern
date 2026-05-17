@@ -24,28 +24,28 @@ const Title = styled.h2`
 
 const CreateBtn = styled.button`
   padding: 16px 32px;
-  background: var(--text-charcoal);
-  color: var(--white);
+  background: var(--primary);
+  color: var(--text-inverse);
   border-radius: var(--radius-pill);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  &:hover { background: var(--primary); transform: translateY(-2px); }
+  &:hover { background: var(--accent); color: var(--primary); transform: translateY(-2px); box-shadow: var(--shadow-premium); }
 `;
 
 const TableCard = styled.div`
-  background: var(--white);
+  background: var(--text-inverse);
   border-radius: var(--radius-card);
   overflow: hidden;
   box-shadow: var(--shadow-premium);
-  border: 1px solid var(--border-soft);
+  border: 1px solid var(--border);
 `;
 
 const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
   th { background: var(--primary); color: white; padding: 24px; text-align: left; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; }
-  td { padding: 24px; border-bottom: 1px solid var(--bg-cream); font-weight: 600; }
+  td { padding: 24px; border-bottom: 1px solid var(--bg-surface-alt); font-weight: 600; }
 `;
 
 const ModalOverlay = styled.div`
@@ -60,19 +60,26 @@ const ModalOverlay = styled.div`
 `;
 
 const Modal = styled.div`
-  background: var(--white);
+  background: var(--text-inverse);
   padding: 60px;
   border-radius: var(--radius-card);
   width: 100%;
   max-width: 600px;
   box-shadow: var(--shadow-premium);
+  max-height: 90vh;
+  overflow-y: auto;
+  overflow-x: auto;
+  
+  /* Scrollbar styles for the modal */
+  &::-webkit-scrollbar { width: 8px; height: 8px; }
+  &::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
 `;
 
 const FormGroup = styled.div`
   margin-bottom: 24px;
   position: relative;
   label { display: block; font-size: 0.8rem; font-weight: 800; color: var(--primary); margin-bottom: 8px; text-transform: uppercase; }
-  input, select { width: 100%; padding: 18px; border: 1px solid var(--border-soft); border-radius: var(--radius-sm); font-size: 1rem; background: var(--bg-cream); appearance: auto; }
+  input, select { width: 100%; padding: 18px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 1rem; background: var(--bg-surface-alt); appearance: auto; }
 `;
 
 const EyeBtn = styled.button`
@@ -83,7 +90,7 @@ const EyeBtn = styled.button`
   border: none;
   cursor: pointer;
   font-size: 1.2rem;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   &:hover { color: var(--primary); }
 `;
 
@@ -158,13 +165,9 @@ const AdminStaff = () => {
 
     try {
       if (editingId) {
-        await api.put(`/admin/staff/${editingId}`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
+        await api.put(`/admin/staff/${editingId}`, formData);
       } else {
-        await api.post("/admin/staff", formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
+        await api.post("/admin/staff", formData);
       }
       setShowModal(false);
       fetchStaff();
@@ -227,7 +230,7 @@ const AdminStaff = () => {
                     <td style={{ textAlign: 'right' }}>
                       <button 
                         onClick={() => handleEdit(s)}
-                        style={{ background: 'var(--bg-cream)', color: 'var(--primary)', padding: '6px 16px', borderRadius: '20px', fontWeight: 800, fontSize: '0.7rem', marginRight: '8px', border: 'none', cursor: 'pointer' }}
+                        style={{ background: 'var(--bg-surface-alt)', color: 'var(--primary)', padding: '6px 16px', borderRadius: '20px', fontWeight: 800, fontSize: '0.7rem', marginRight: '8px', border: 'none', cursor: 'pointer' }}
                       >
                         EDIT
                       </button>
@@ -294,10 +297,10 @@ const AdminStaff = () => {
                   style={{ padding: '12px' }}
                 />
               </FormGroup>
-              <div style={{ background: 'var(--bg-cream)', padding: '20px', borderRadius: '15px', border: '1px solid var(--border-soft)', marginBottom: '24px' }}>
+              <div style={{ background: 'var(--bg-surface-alt)', padding: '20px', borderRadius: '15px', border: '1px solid var(--border)', marginBottom: '24px' }}>
                 <FormGroup style={{ marginBottom: 0 }}>
                   <label style={{ color: '#d46a4f', fontSize: '0.85rem' }}>SECURITY CHECK: Enter YOUR CURRENT ADMIN Password</label>
-                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '8px', fontStyle: 'italic' }}>Prove your identity by typing your own admin password below.</p>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '8px', fontStyle: 'italic' }}>Prove your identity by typing your own admin password below.</p>
                   <div style={{ position: 'relative' }}>
                     <input 
                       type={showConfirmPwd ? "text" : "password"} 
@@ -311,7 +314,7 @@ const AdminStaff = () => {
                 </FormGroup>
               </div>
               <div style={{ display:'flex', gap:'16px', marginTop:'40px' }}>
-                <button type="button" onClick={() => setShowModal(false)} style={{ flex:1, padding:'18px', borderRadius:'40px', border:'1px solid var(--border-soft)', fontWeight:800 }}>Cancel</button>
+                <button type="button" onClick={() => setShowModal(false)} style={{ flex:1, padding:'18px', borderRadius:'40px', border:'1px solid var(--border)', fontWeight:800 }}>Cancel</button>
                 <CreateBtn type="submit" disabled={saving} style={{ flex:1 }}>
                   {saving ? (editingId ? 'UPDATING...' : 'PROVISIONING...') : (editingId ? 'AUTHORIZE UPDATE' : 'AUTHORIZE ENLISTMENT')}
                 </CreateBtn>
@@ -326,17 +329,17 @@ const AdminStaff = () => {
           <Modal onClick={e => e.stopPropagation()} style={{ maxWidth:'400px', textAlign:'center', padding:'40px' }}>
             <div style={{ fontSize:'3rem', marginBottom:'16px' }}>⚠️</div>
             <h3 style={{ color:'var(--primary)', fontSize:'1.5rem', marginBottom:'12px' }}>Authorize Personnel Removal</h3>
-            <p style={{ color:'var(--text-muted)', marginBottom:'24px' }}>Are you sure you want to permanently revoke system access and remove <strong>{confirmDelete.first_name} {confirmDelete.last_name}</strong>?</p>
+            <p style={{ color:'var(--text-secondary)', marginBottom:'24px' }}>Are you sure you want to permanently revoke system access and remove <strong>{confirmDelete.first_name} {confirmDelete.last_name}</strong>?</p>
             <div style={{ display: "flex", gap: "16px" }}>
               <button 
                 type="button" 
-                style={{ flex:1, padding: '16px', background:'var(--bg-cream)', color:'var(--primary)', borderRadius:'var(--radius-pill)', fontWeight:800, border:'none', cursor:'pointer' }} 
+                style={{ flex:1, padding: '16px', background:'var(--bg-surface-alt)', color:'var(--primary)', borderRadius:'var(--radius-pill)', fontWeight:800, border:'none', cursor:'pointer' }} 
                 onClick={() => setConfirmDelete(null)}>
                 CANCEL
               </button>
               <button 
                 type="button" 
-                style={{ flex:1, padding: '16px', background:'#d46a4f', color:'var(--white)', borderRadius:'var(--radius-pill)', fontWeight:800, border:'none', cursor:'pointer' }} 
+                style={{ flex:1, padding: '16px', background:'#d46a4f', color:'var(--text-inverse)', borderRadius:'var(--radius-pill)', fontWeight:800, border:'none', cursor:'pointer' }} 
                 onClick={handleDelete}>
                 CONFIRM PURGE
               </button>

@@ -12,8 +12,8 @@ router.get('/farmers/:id/detail', protect, adminOnly, adminController.getFarmerD
 router.put('/farmers/:id', protect, adminOnly, adminController.updateFarmerProfile);
 router.put('/farmers/:id/status', protect, adminOnly, adminController.updateFarmerStatus);
 router.get('/staff', protect, adminOnly, adminController.getStaff);
-router.post('/staff', protect, adminOnly, upload.single('avatar'), adminController.createStaff);
-router.put('/staff/:id', protect, adminOnly, upload.single('avatar'), adminController.updateStaff);
+router.post('/staff', protect, adminOnly, upload.single('avatar'), require('../middleware/uploadMiddleware').resizeImage, adminController.createStaff);
+router.put('/staff/:id', protect, adminOnly, upload.single('avatar'), require('../middleware/uploadMiddleware').resizeImage, adminController.updateStaff);
 router.delete('/staff/:id', protect, adminOnly, adminController.deleteStaff);
 router.get('/reviews', protect, adminOnly, adminController.getAllReviews);
 router.delete('/products/:productId/reviews/:reviewId', protect, adminOnly, adminController.deleteReview);
@@ -33,4 +33,3 @@ router.put('/settings', protect, adminOnly, updateSettings);
 router.post('/settings/logo', protect, adminOnly, upload.single('logo'), require('../middleware/uploadMiddleware').resizeImage, uploadLogo);
 
 module.exports = router;
-

@@ -113,7 +113,7 @@ const CommHubModal = ({ order, onClose }) => {
       name: 'Balance Settlement',
       desc: 'Institutional payment reminder for outstanding fiscal dues.',
       subject: `Strategic Payment Verification Required: Order #${orderId}`,
-      text: `Respected ${farmerName},\n\nThis is an institutional notification regarding your recent procurement #${orderId}. Our records indicate an outstanding balance of Rs. ${balance.toLocaleString()}.\n\nPlease ensure settlement at your earliest convenience to maintain your high-fidelity stakeholder rating.\n\nRegards,\nAgrotek Elite Operational Authority`
+      text: `Respected ${farmerName},\n\nThis is an institutional notification regarding your recent procurement #${orderId}. Our records indicate an outstanding balance of Rs. ${balance.toLocaleString()}.\n\nPlease ensure settlement at your earliest convenience to maintain your high-fidelity stakeholder rating.\n\nRegards,\nKisanStore Operational Authority`
     },
     {
       id: 'ready',
@@ -121,7 +121,7 @@ const CommHubModal = ({ order, onClose }) => {
       name: 'Collection Alert',
       desc: 'Notify stakeholder that assets are ready for tactical collection.',
       subject: `Procurement Mobilization Authorized: #${orderId}`,
-      text: `Respected ${farmerName},\n\nYour agricultural assets under Order #${orderId} have been staged for collection at our central logistics hub.\n\nPlease visit within operational hours for institutional dispatch and verification.\n\nRegards,\nAgrotek Elite Administrative Unit`
+      text: `Respected ${farmerName},\n\nYour agricultural assets under Order #${orderId} have been staged for collection at our central logistics hub.\n\nPlease visit within operational hours for institutional dispatch and verification.\n\nRegards,\nKisanStore Administrative Unit`
     }
   ];
 

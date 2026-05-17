@@ -1,0 +1,141 @@
+{
+  "users": [
+    {
+      "_id": "60d5ecb8b392d700153ae201",
+      "first_name": "Ali",
+      "last_name": "Raza",
+      "email": "ali.raza@example.com",
+      "password": "hashed_password_123",
+      "phone": ["+923001234567"],
+      "cnic": "35201-1234567-1",
+      "address": "Chak 12, Main Canal Road",
+      "city": "Faisalabad",
+      "role": "farmer",
+      "emailVerified": true,
+      "isActive": true
+    },
+    {
+      "_id": "60d5ecb8b392d700153ae202",
+      "first_name": "Hamza",
+      "last_name": "Admin",
+      "email": "admin@kisanstore.pk",
+      "password": "hashed_password_admin",
+      "phone": ["+923211234567"],
+      "role": "admin",
+      "emailVerified": true,
+      "isActive": true
+    },
+    {
+      "_id": "60d5ecb8b392d700153ae203",
+      "first_name": "Usman",
+      "last_name": "Manager",
+      "email": "usman.mgr@kisanstore.pk",
+      "password": "hashed_password_mgr",
+      "phone": ["+923331234567"],
+      "city": "Lahore",
+      "role": "manager",
+      "emailVerified": true,
+      "isActive": true
+    }
+  ],
+  "products": [
+    {
+      "_id": "60d5ecb8b392d700153ae301",
+      "name": "DAP Fertilizer (Sona)",
+      "price": 12500,
+      "taxAmount": 200,
+      "stock": 500,
+      "brand": "Fauji Fertilizer Company",
+      "isAvailable": true,
+      "description": "High quality Diammonium Phosphate fertilizer suitable for initial crop stages.",
+      "category": "Fertilizer",
+      "crops": ["Wheat", "Cotton", "Sugarcane"],
+      "unit": "per bag",
+      "tags": ["DAP", "Sona", "Nitrogen"]
+    },
+    {
+      "_id": "60d5ecb8b392d700153ae302",
+      "name": "Urea (Engro)",
+      "price": 3800,
+      "taxAmount": 50,
+      "stock": 1200,
+      "brand": "Engro Fertilizers",
+      "isAvailable": true,
+      "description": "Premium Urea providing 46% Nitrogen for rapid vegetative growth.",
+      "category": "Fertilizer",
+      "crops": ["Rice", "Wheat", "Maize"],
+      "unit": "per bag",
+      "tags": ["Urea", "Engro", "Fast Growth"]
+    },
+    {
+      "_id": "60d5ecb8b392d700153ae303",
+      "name": "NPK 8-8-8 Liquid",
+      "price": 1500,
+      "taxAmount": 20,
+      "stock": 300,
+      "brand": "Bayer",
+      "isAvailable": true,
+      "description": "Balanced liquid NPK formulation for foliar application.",
+      "category": "Liquid Fertilizer",
+      "crops": ["Vegetables", "Fruits"],
+      "unit": "per liter",
+      "tags": ["NPK", "Liquid", "Bayer"]
+    }
+  ],
+  "orders": [
+    {
+      "_id": "60d5ecb8b392d700153ae401",
+      "farmer": "60d5ecb8b392d700153ae201",
+      "farmerPhone": "+923001234567",
+      "items": [
+        {
+          "product": "60d5ecb8b392d700153ae301",
+          "quantity": 10,
+          "price": 12500,
+          "taxAmount": 200
+        },
+        {
+          "product": "60d5ecb8b392d700153ae302",
+          "quantity": 20,
+          "price": 3800,
+          "taxAmount": 50
+        }
+      ],
+      "status": "Pending",
+      "totalAmount": 201000,
+      "taxTotal": 3000,
+      "grandTotal": 204000,
+      "amountPaid": 0,
+      "paymentStatus": "Unpaid",
+      "pickupDate": "2026-05-20T10:00:00Z",
+      "notes": "Please keep Sona DAP bags separate from Engro Urea."
+    },
+    {
+      "_id": "60d5ecb8b392d700153ae402",
+      "farmer": "60d5ecb8b392d700153ae201",
+      "farmerPhone": "+923001234567",
+      "items": [
+        {
+          "product": "60d5ecb8b392d700153ae303",
+          "quantity": 5,
+          "price": 1500,
+          "taxAmount": 20
+        }
+      ],
+      "status": "Completed",
+      "totalAmount": 7500,
+      "taxTotal": 100,
+      "grandTotal": 7600,
+      "amountPaid": 7600,
+      "paymentStatus": "Paid",
+      "payments": [
+        {
+          "amount": 7600,
+          "method": "Cash",
+          "note": "Paid in full at store counter."
+        }
+      ],
+      "pickupDate": "2026-05-15T14:30:00Z"
+    }
+  ]
+}

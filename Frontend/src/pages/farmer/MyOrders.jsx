@@ -113,6 +113,14 @@ const StatusBadge = styled.span`
   border: 1px solid currentColor;
 `;
 
+const OrderId = styled.span`
+  font-family: 'Inter', monospace;
+  font-weight: 900;
+  color: var(--primary);
+  opacity: 0.6;
+  font-size: 0.85rem;
+`;
+
 const OrderGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -263,6 +271,7 @@ const MyOrders = () => {
   };
 
   const filtered = orders.filter(o => {
+    if (!o?.createdAt) return false;
     const orderDate = new Date(o.createdAt).toISOString().split('T')[0];
     return (!startDate || orderDate >= startDate) && (!endDate || orderDate <= endDate);
   });

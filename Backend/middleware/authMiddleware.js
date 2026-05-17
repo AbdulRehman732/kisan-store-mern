@@ -29,6 +29,15 @@ exports.protect = async (req, res, next) => {
     }
 
     req.user = user;
+
+    // Extend session on activity (4 minutes)
+    res.cookie('accessToken', token, {
+      httpOnly: true,
+      secure: false, // Ensure cookies are sent over HTTP in local dev
+      sameSite: 'Lax',
+      maxAge: 4 * 60 * 1000
+    });
+
     next();
   } catch (err) {
     if (err.name === 'TokenExpiredError') {

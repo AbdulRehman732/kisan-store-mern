@@ -2,6 +2,7 @@ import React from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 // ===== ANIMATIONS =====
 const pulse = keyframes`
@@ -88,9 +89,10 @@ const CartIcon = () => (
 
 const FloatingCart = () => {
   const { itemCount } = useCart();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
-  if (itemCount === 0) return null;
+  if (itemCount === 0 || user?.role === 'admin' || user?.role === 'manager') return null;
 
   return (
     <CartButton onClick={() => navigate('/cart')} title="Review Procurement Dossier">

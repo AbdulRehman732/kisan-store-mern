@@ -171,4 +171,6 @@ class MailService {
   }
 }
 
-module.exports = new MailService();
+const mailService = new MailService();
+mailService.init(); // Pre-initialize
+module.exports = mailService;

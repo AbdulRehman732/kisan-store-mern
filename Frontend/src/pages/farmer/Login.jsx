@@ -26,7 +26,6 @@ const PageContainer = styled.div`
     pointer-events: none;
   }
 `;
-
 const LoginCard = styled.div`
   background: var(--bg-surface);
   border-radius: var(--radius-card);
@@ -147,7 +146,7 @@ const Login = () => {
       <LoginCard>
         <BrandHeader>
           <span className="icon">🌾</span>
-          <h1>Agrotek Elite</h1>
+          <h1>KisanStore</h1>
           <p>Institutional Stakeholder Portal</p>
         </BrandHeader>
 
@@ -156,7 +155,7 @@ const Login = () => {
         <form onSubmit={handleSubmit}>
           <FormGroup>
             <label>Communication Endpoint (Email)</label>
-            <input type="email" name="email" value={form.email} onChange={handleChange} placeholder="stakeholder@agrotek.com" required />
+            <input type="email" name="email" value={form.email} onChange={handleChange} placeholder="stakeholder@kisanstore.pk" required />
           </FormGroup>
 
           <FormGroup>

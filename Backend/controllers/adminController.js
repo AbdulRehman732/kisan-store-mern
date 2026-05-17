@@ -785,6 +785,4 @@ exports.getFarmerDetail = async (req, res) => {
   }
 };
 
-
-
 

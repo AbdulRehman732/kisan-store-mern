@@ -197,13 +197,13 @@ const SalesReport = () => {
       headStyles: { fillColor: [43, 57, 34] },
       alternateRowStyles: { fillColor: [245, 245, 245] }
     });
-    doc.save("agrotek_strategic_report.pdf");
+    doc.save("kisanstore_strategic_report.pdf");
   };
 
   const exportExcel = () => {
     const ws = XLSX.utils.json_to_sheet(filtered.map(o => ({ 'Trace ID': o._id.toUpperCase(), 'Entity': `${o.farmer?.first_name} ${o.farmer?.last_name}`, 'Valuation': o.totalAmount, 'Status': o.status, 'Date': new Date(o.createdAt).toLocaleDateString() })));
     const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Sales Data');
-    XLSX.writeFile(wb, "agrotek_data_export.xlsx");
+    XLSX.writeFile(wb, "kisanstore_data_export.xlsx");
   };
 
   const COLORS = ['#2B3922', '#F5B611', '#5C7A4A', '#A88D3E', '#1A2A12'];

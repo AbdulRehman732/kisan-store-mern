@@ -75,6 +75,7 @@ const NavItem = styled(NavLink)`
   &:hover, &.active {
     color: var(--primary);
     background: var(--bg-surface-alt);
+    box-shadow: var(--shadow-inner);
   }
   
   &.active::after {
@@ -262,7 +263,7 @@ const Navbar = () => {
         <NavContainer style={{ height: isScrolled ? '70px' : '80px', marginTop: isScrolled ? '0' : '8px' }}>
           <Brand to="/">
             <span className="logo-icon">🌾</span>
-            Agrotek<span>Elite</span>
+            Kisan<span>Store</span>
           </Brand>
 
           <NavList>
@@ -273,15 +274,17 @@ const Navbar = () => {
                 </NavItem>
               </li>
             ))}
-            {user?.role === 'admin' && <li><NavItem to="/admin/dashboard" style={{color:'var(--accent)'}}>Command Center</NavItem></li>}
+            {user?.role === 'admin' && <li><NavItem to="/admin/dashboard" style={{color:'var(--accent)'}}>Admin Panel</NavItem></li>}
           </NavList>
 
           <ActionChain>
             <ThemeToggle />
             
-            <IconButton to="/cart">
-              🛒 {itemCount > 0 && <CartBadge>{itemCount}</CartBadge>}
-            </IconButton>
+            {user?.role !== 'admin' && user?.role !== 'manager' && (
+              <IconButton to="/cart">
+                🛒 {itemCount > 0 && <CartBadge>{itemCount}</CartBadge>}
+              </IconButton>
+            )}
 
             {user ? (
               <>
@@ -312,13 +315,13 @@ const Navbar = () => {
         </div>
         
         <div style={{display:'flex', flexDirection:'column', flex:1}}>
-          <DrawerLink to="/">Home Intelligence</DrawerLink>
-          <DrawerLink to="/products">Asset Catalog</DrawerLink>
-          <DrawerLink to="/soil-registry">Soil Analysis</DrawerLink>
-          <DrawerLink to="/price-list">Market Dynamics</DrawerLink>
-          <DrawerLink to="/cart">Procurement Dossier</DrawerLink>
-          {user && <DrawerLink to="/profile">Member Identity</DrawerLink>}
-          {user?.role === 'admin' && <DrawerLink to="/admin/dashboard" style={{color:'var(--accent)'}}>Admin Command</DrawerLink>}
+          <DrawerLink to="/">Home</DrawerLink>
+          <DrawerLink to="/products">Products Catalog</DrawerLink>
+          <DrawerLink to="/soil-registry">Soil Intel</DrawerLink>
+          <DrawerLink to="/price-list">Price List</DrawerLink>
+          {user?.role !== 'admin' && user?.role !== 'manager' && <DrawerLink to="/cart">My Cart</DrawerLink>}
+          {user && <DrawerLink to="/profile">My Profile</DrawerLink>}
+          {user?.role === 'admin' && <DrawerLink to="/admin/dashboard" style={{color:'var(--accent)'}}>Admin Panel</DrawerLink>}
         </div>
 
         <div style={{marginTop:'auto', borderTop:'1px solid var(--border)', paddingTop:'32px'}}>

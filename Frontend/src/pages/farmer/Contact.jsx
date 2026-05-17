@@ -121,21 +121,21 @@ const Contact = () => {
               <div className="icon-box">📍</div>
               <div className="text">
                 <h4>Consortium Headquarters</h4>
-                <p>Agrotek Elite Plaza, Sector 7-C<br />Institutional District, Central Hub</p>
+                <p>KisanStore Plaza, Sector 7-C<br />Institutional District, Central Hub</p>
               </div>
             </InfoItem>
             <InfoItem>
               <div className="icon-box">📞</div>
               <div className="text">
                 <h4>Operational Hotline</h4>
-                <p>+92 (300) AGROTEK ELITE<br />Active Monitoring Stream</p>
+                <p>+92 (300) KISAN STORE<br />Active Monitoring Stream</p>
               </div>
             </InfoItem>
             <InfoItem>
               <div className="icon-box">✉️</div>
               <div className="text">
                 <h4>Secure Protocol</h4>
-                <p>ops@agrotek-elite.com<br />intelligence@agrotek-elite.com</p>
+                <p>ops@kisanstore.pk<br />intelligence@kisanstore.pk</p>
               </div>
             </InfoItem>
           </OperationalCore>
@@ -147,7 +147,7 @@ const Contact = () => {
             </InputGroup>
             <InputGroup>
               <label>Tactical Correspondence (Email)</label>
-              <input type="email" placeholder="stakeholder@agrotek-elite.com" required />
+              <input type="email" placeholder="stakeholder@kisanstore.pk" required />
             </InputGroup>
             <InputGroup>
               <label>Logistics Requirements / Query</label>

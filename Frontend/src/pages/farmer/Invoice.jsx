@@ -139,12 +139,12 @@ const Invoice = () => {
       <InvoicePaper>
         <Header>
           <BrandBlock>
-            <div className="logo">🌾 Agrotek<span>Elite</span></div>
+            <div className="logo">🌾 Kisan<span>Store</span></div>
             <div className="tagline">Institutional Fertilizer & Seed Consortium</div>
           </BrandBlock>
           <DocMeta>
             <h1>INVOICE</h1>
-            <p>CERTIFICATE ID: AG-INV-{order._id.substring(18).toUpperCase()}</p>
+            <p>CERTIFICATE ID: KS-INV-{order._id.substring(18).toUpperCase()}</p>
           </DocMeta>
         </Header>
 
@@ -212,7 +212,7 @@ const Invoice = () => {
 
         <div style={{ marginTop: '100px', borderTop: '1px solid #f5f5f5', paddingTop: '40px', textAlign: 'center', fontSize: '0.8rem', color: '#aaa', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
           <p>Electronic Verification Protocol Enabled. Physical Signature Redundant.</p>
-          <p style={{ marginTop: '12px', color: '#888' }}>© 2026 Agrotek Elite Intelligence Consortium. All Rights Authorized.</p>
+          <p style={{ marginTop: '12px', color: '#888' }}>© 2026 KisanStore Intelligence Consortium. All Rights Authorized.</p>
         </div>
       </InvoicePaper>
       <PrintFAB onClick={() => window.print()}>🖨️ Generate Physical Certificate</PrintFAB>

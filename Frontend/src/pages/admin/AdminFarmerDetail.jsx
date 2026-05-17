@@ -246,7 +246,7 @@ const AdminFarmerDetail = () => {
           </div>
           <div style={{fontSize:'0.65rem', color:'var(--text-secondary)', fontWeight:900, textTransform:'uppercase', letterSpacing:'0.2em', marginTop:'12px'}}>ENTITY_ID: {farmer._id.toUpperCase()}</div>
         </ProfileInfo>
-        <ActionBtn onClick={() => setShowEditModal(true)}>Edit Profile Profile</ActionBtn>
+        <ActionBtn onClick={() => setShowEditModal(true)}>Edit Profile</ActionBtn>
       </ProfileHero>
 
       <MetricsGrid>

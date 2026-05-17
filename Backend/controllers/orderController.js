@@ -21,8 +21,8 @@ exports.createOrder = async (req, res) => {
       farmerPhone
     });
 
-    // Notify farmer via institutional email (Mock)
-    await MailService.sendOrderConfirmation(req.user, order);
+    // Notify farmer via institutional email (Mock) - Non-blocking
+    MailService.sendOrderConfirmation(req.user, order).catch(err => console.error('[MAIL] Error:', err));
 
     // Real-time notification
     const io = req.app.get('io');

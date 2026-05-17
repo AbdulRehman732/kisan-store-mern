@@ -9,6 +9,18 @@ const settingsSchema = new mongoose.Schema({
     type: String,
     default: 'Industrial Estate, Phase 1'
   },
+  whatsappNumber: {
+    type: String,
+    default: '0300-1234567'
+  },
+  supportEmail: {
+    type: String,
+    default: 'support@kisanstore.pk'
+  },
+  mapCoordinates: {
+    lat: { type: Number, default: 31.5204 }, // Default to Lahore area for example
+    lng: { type: Number, default: 74.3587 }
+  },
   storePhone: {
     type: String,
     default: '0300-1234567'

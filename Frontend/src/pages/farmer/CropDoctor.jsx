@@ -103,7 +103,7 @@ const SYMPTOMS = [
   { id: 'yellow', label: 'Yellowing Leaves', icon: '🍂', advice: 'Nitrogen deficiency detected. High-fidelity chlorophyll analysis suggests institutional-grade Urea fertilization for restoration.', product: 'Premium Urea' },
   { id: 'spots', label: 'Necrotic Blotching', icon: '🍄', advice: 'Fungal colonization identified. Tactical application of specialized Fungicide or tactical Pesticide protocol required.', product: 'Tactical Pesticide' },
   { id: 'wilting', label: 'Sudden Flaccidity', icon: '🥀', advice: 'Root-level hydraulic stress or Potassium index failure. Institutional Potash application and irrigation recalibration advised.', product: 'High-K Potash' },
-  { id: 'stunted', label: 'Inhibited Vigor', icon: '🌱', advice: 'Phosphorus deficiency or soil organic matrix degradation. High-precision DAP mobilization recommended for root anchoring.', product: 'Agrotek DAP' },
+  { id: 'stunted', label: 'Inhibited Vigor', icon: '🌱', advice: 'Phosphorus deficiency or soil organic matrix degradation. High-precision DAP mobilization recommended for root anchoring.', product: 'KisanStore DAP' },
   { id: 'falling', label: 'Premature Abscission', icon: '🍎', advice: 'Micronutrient imbalance identified. Balanced precision fertilization and hormonal regulator deployment synchronized with heat-stress protocols.', product: 'Multi-Micro Nutrient' },
 ];
 
