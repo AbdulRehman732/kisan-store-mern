@@ -4,9 +4,12 @@ on:
   push:
     branches:
       - master
+  pull_request:
+    branches:
+      - master
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
@@ -18,15 +21,18 @@ jobs:
         with:
           node-version: 18
 
-      - name: Install Dependencies
+      - name: Install Backend Dependencies
+        working-directory: ./Backend
         run: npm install
 
-      - name: Run Lint
-        run: npm run lint --if-present
-
-      - name: Run Tests
+      - name: Run Backend Tests
+        working-directory: ./Backend
         run: npm test --if-present
 
-      - name: Build Project
+      - name: Install Frontend Dependencies
+        working-directory: ./Frontend
+        run: npm install
+
+      - name: Build Frontend Project
+        working-directory: ./Frontend
         run: npm run build --if-present
-        
